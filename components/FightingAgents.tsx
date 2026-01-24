@@ -1,236 +1,480 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-interface Point {
-  x: number;
-  y: number;
-}
+// --- CONFIG & CONSTANTS ---
+const ARENA_WIDTH = 800;
+const ARENA_HEIGHT = 500;
+const AGENT_RADIUS = 12;
+const BULLET_SPEED = 9; // Fast bullets
+const AGENT_SPEED = 3.5; // Fast agents
+const COOLDOWN = 15; // Rapid fire
+const MAX_FRAMES_PER_ROUND = 900; // ~15 seconds
 
-class Agent {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  radius: number;
-  energy: number;
-  maxSpeed: number;
-  id: number;
+// --- GEOMETRY TYPES ---
+interface Bullet { x: number; y: number; vx: number; vy: number; owner: 'NN' | 'BOT'; id: number; }
+interface Obstacle { x: number; y: number; w: number; h: number; }
 
-  constructor(x: number, y: number, id: number) {
-    this.x = x;
-    this.y = y;
-    this.vx = (Math.random() - 0.5) * 2;
-    this.vy = (Math.random() - 0.5) * 2;
-    this.radius = 4;
-    this.energy = 100;
-    this.maxSpeed = 2;
-    this.id = id;
+// --- SIMPLE CRUDE NEURAL NETWORK ---
+const INPUT_SIZE = 7;
+const HIDDEN_SIZE = 8;
+const OUTPUT_SIZE = 3; // Turn, Move, Shoot
+
+class SimpleNN {
+  weights1: number[][]; // Input -> Hidden
+  bias1: number[];
+  weights2: number[][]; // Hidden -> Output
+  bias2: number[];
+
+  constructor(copyFrom?: SimpleNN) {
+    if (copyFrom) {
+      this.weights1 = copyFrom.weights1.map(row => [...row]);
+      this.bias1 = [...copyFrom.bias1];
+      this.weights2 = copyFrom.weights2.map(row => [...row]);
+      this.bias2 = [...copyFrom.bias2];
+    } else {
+      // Init random weights
+      this.weights1 = Array(INPUT_SIZE).fill(0).map(() => Array(HIDDEN_SIZE).fill(0).map(() => Math.random() * 2 - 1));
+      this.bias1 = Array(HIDDEN_SIZE).fill(0).map(() => Math.random() * 2 - 1);
+      this.weights2 = Array(HIDDEN_SIZE).fill(0).map(() => Array(OUTPUT_SIZE).fill(0).map(() => Math.random() * 2 - 1));
+      this.bias2 = Array(OUTPUT_SIZE).fill(0).map(() => Math.random() * 2 - 1);
+    }
   }
 
-  update(width: number, height: number, food: Point[]) {
-    // 1. Find nearest food
-    let nearestFood: Point | null = null;
-    let minDist = Infinity;
+  mutate(rate: number) {
+    const mutateVal = (v: number) => {
+      if (Math.random() < rate) return v + (Math.random() * 2 - 1) * 0.5; // Small tweak
+      if (Math.random() < 0.005) return Math.random() * 2 - 1; // Rare total reset
+      return v;
+    };
+    this.weights1 = this.weights1.map(row => row.map(mutateVal));
+    this.bias1 = this.bias1.map(mutateVal);
+    this.weights2 = this.weights2.map(row => row.map(mutateVal));
+    this.bias2 = this.bias2.map(mutateVal);
+  }
 
-    for (const f of food) {
-      const d = Math.hypot(f.x - this.x, f.y - this.y);
-      if (d < minDist) {
-        minDist = d;
-        nearestFood = f;
+  predict(inputs: number[]): number[] {
+    // Layer 1
+    const hidden = this.bias1.map((b, i) => {
+      let sum = b;
+      for (let j = 0; j < INPUT_SIZE; j++) sum += inputs[j] * this.weights1[j][i];
+      return Math.tanh(sum);
+    });
+
+    // Layer 2
+    const output = this.bias2.map((b, i) => {
+      let sum = b;
+      for (let j = 0; j < HIDDEN_SIZE; j++) sum += hidden[j] * this.weights2[j][i];
+      return Math.tanh(sum); // Output -1 to 1
+    });
+
+    return output;
+  }
+}
+
+// --- GAME STATE ---
+interface GameState {
+  nnAgent: { x: number, y: number, angle: number, hp: number, cooldown: number, brain: SimpleNN };
+  botAgent: { x: number, y: number, angle: number, hp: number, cooldown: number };
+  bullets: Bullet[];
+  obstacles: Obstacle[];
+  frame: number;
+  bestBrain: SimpleNN;
+  currentScore: number;
+  generation: number;
+  bestScore: number;
+  nnWins: number;
+  botWins: number;
+}
+
+
+// --- COMPONENT ---
+export const FightingAgents: React.FC = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // UI Controls
+  const [mutationRate, setMutationRate] = useState(0.1);
+  const [simGenerations, setSimGenerations] = useState(50);
+  const [isSimulating, setIsSimulating] = useState(false);
+  const [displayGen, setDisplayGen] = useState(1);
+  const [displayScore, setDisplayScore] = useState(0);
+
+  // Mutable Game State
+  const state = useRef<GameState>({
+    nnAgent: { x: 50, y: 50, angle: 0, hp: 100, cooldown: 0, brain: new SimpleNN() },
+    botAgent: { x: 750, y: 450, angle: Math.PI, hp: 100, cooldown: 0 },
+    bullets: [],
+    obstacles: [
+      { x: 300, y: 150, w: 200, h: 20 },
+      { x: 300, y: 330, w: 200, h: 20 },
+      { x: 150, y: 200, w: 20, h: 100 },
+      { x: 630, y: 200, w: 20, h: 100 }
+    ],
+    frame: 0,
+    bestBrain: new SimpleNN(),
+    currentScore: 0,
+    generation: 1,
+    bestScore: -Infinity,
+    nnWins: 0,
+    botWins: 0
+  });
+
+  const requestRef = useRef<number>(0);
+
+  // --- PHYSICS ENGINE ---
+  const checkCol = (x: number, y: number, r: number, rects: Obstacle[]) => {
+    if (x < r || x > ARENA_WIDTH - r || y < r || y > ARENA_HEIGHT - r) return true;
+    return rects.some(o => x > o.x - r && x < o.x + o.w + r && y > o.y - r && y < o.y + o.h + r);
+  };
+
+  const updatePhysics = (s: GameState, fastMode: boolean) => {
+    s.frame++;
+
+    // 1. SENSORS
+    const dx = s.botAgent.x - s.nnAgent.x;
+    const dy = s.botAgent.y - s.nnAgent.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const angleToEnemy = Math.atan2(dy, dx);
+    let relAngle = angleToEnemy - s.nnAgent.angle;
+    while (relAngle > Math.PI) relAngle -= Math.PI * 2;
+    while (relAngle < -Math.PI) relAngle += Math.PI * 2;
+
+    // Raycast LOS
+    let los = 1;
+    for (let i = 1; i <= 5; i++) {
+      if (checkCol(s.nnAgent.x + dx * (i / 5), s.nnAgent.y + dy * (i / 5), 2, s.obstacles)) { los = 0; break; }
+    }
+
+    // Wall Sensors (Forward, Left, Right)
+    const feel = (angOffset: number) => {
+      const ax = Math.cos(s.nnAgent.angle + angOffset);
+      const ay = Math.sin(s.nnAgent.angle + angOffset);
+      // Only check 40px out (immediate danger)
+      const cx = s.nnAgent.x + ax * 40;
+      const cy = s.nnAgent.y + ay * 40;
+      return checkCol(cx, cy, 2, s.obstacles) ? 1.0 : 0.0;
+    };
+
+    const inputs = [
+      relAngle / Math.PI,    // 0: Angle to enemy (-1 to 1)
+      dist / ARENA_WIDTH,    // 1: Distance relative to arena width
+      los,                   // 2: Can I see enemy? (0 or 1)
+      feel(0),               // 3: Wall Forward
+      feel(-0.5),            // 4: Wall Left
+      feel(0.5),             // 5: Wall Right
+      1                      // 6: Bias
+    ];
+
+    const [turn, move, shoot] = s.nnAgent.brain.predict(inputs);
+
+    // 2. NN ACTIONS
+    s.nnAgent.angle += turn * 0.15; // Limit turn speed
+
+    // Penalize spinning endlessly
+    if (Math.abs(turn) > 0.8) s.currentScore -= 0.1;
+
+    // Move
+    let speed = 0;
+    if (move > 0) speed = AGENT_SPEED; // Forward on positive
+    else if (move < -0.2) speed = -AGENT_SPEED * 0.5; // Backward on strong negative
+
+    if (Math.abs(speed) > 0) {
+      const nextX = s.nnAgent.x + Math.cos(s.nnAgent.angle) * speed;
+      const nextY = s.nnAgent.y + Math.sin(s.nnAgent.angle) * speed;
+
+      if (!checkCol(nextX, nextY, AGENT_RADIUS, s.obstacles)) {
+        s.nnAgent.x = nextX;
+        s.nnAgent.y = nextY;
+        s.currentScore += 0.05; // Reward movement
+      } else {
+        s.currentScore -= 1.0; // HEAVY penalty for hitting wall (was -0.5)
+      }
+    } else {
+      s.currentScore -= 0.01; // Tiny penalty for standing still
+    }
+
+    // Shoot
+    if (shoot > 0.0 && s.nnAgent.cooldown <= 0) {
+      s.bullets.push({
+        x: s.nnAgent.x + Math.cos(s.nnAgent.angle) * 20,
+        y: s.nnAgent.y + Math.sin(s.nnAgent.angle) * 20,
+        vx: Math.cos(s.nnAgent.angle) * BULLET_SPEED,
+        vy: Math.sin(s.nnAgent.angle) * BULLET_SPEED,
+        owner: 'NN',
+        id: Math.random()
+      });
+      s.nnAgent.cooldown = COOLDOWN;
+
+      // REWARD: Shooting when looking/aiming at enemy is good
+      if (Math.abs(relAngle) < 0.5 && los === 1) {
+        s.currentScore += 10;
+      }
+    }
+    if (s.nnAgent.cooldown > 0) s.nnAgent.cooldown--;
+
+
+    // 3. BOT LOGIC
+    const bDx = s.nnAgent.x - s.botAgent.x;
+    const bDy = s.nnAgent.y - s.botAgent.y;
+    const bDist = Math.sqrt(bDx * bDx + bDy * bDy);
+    const bAngle = Math.atan2(bDy, bDx);
+    let bRelAngle = bAngle - s.botAgent.angle;
+    while (bRelAngle > Math.PI) bRelAngle -= Math.PI * 2;
+    while (bRelAngle < -Math.PI) bRelAngle += Math.PI * 2;
+
+    s.botAgent.angle += bRelAngle * 0.1;
+
+    let bSpeed = 0;
+    if (bDist > 300) bSpeed = AGENT_SPEED * 0.6; // Chase slowly
+    else if (bDist < 100) bSpeed = -AGENT_SPEED * 0.5; // Back up
+
+    if (Math.abs(bSpeed) > 0.1) {
+      const nx = s.botAgent.x + Math.cos(s.botAgent.angle) * bSpeed;
+      const ny = s.botAgent.y + Math.sin(s.botAgent.angle) * bSpeed;
+      if (!checkCol(nx, ny, AGENT_RADIUS, s.obstacles)) { s.botAgent.x = nx; s.botAgent.y = ny; }
+    }
+
+    if (Math.abs(bRelAngle) < 0.3 && s.botAgent.cooldown <= 0 && bDist < 450) {
+      let clearShot = true;
+      for (let i = 1; i < 5; i++) { if (checkCol(s.botAgent.x + bDx * (i / 5), s.botAgent.y + bDy * (i / 5), 2, s.obstacles)) clearShot = false; }
+      if (clearShot) {
+        s.bullets.push({
+          x: s.botAgent.x + Math.cos(s.botAgent.angle) * 20,
+          y: s.botAgent.y + Math.sin(s.botAgent.angle) * 20,
+          vx: Math.cos(s.botAgent.angle) * BULLET_SPEED,
+          vy: Math.sin(s.botAgent.angle) * BULLET_SPEED,
+          owner: 'BOT',
+          id: Math.random()
+        });
+        s.botAgent.cooldown = COOLDOWN * 1.5;
+      }
+    }
+    if (s.botAgent.cooldown > 0) s.botAgent.cooldown--;
+
+    // 4. BULLETS & HITS
+    for (let i = s.bullets.length - 1; i >= 0; i--) {
+      const b = s.bullets[i];
+      b.x += b.vx;
+      b.y += b.vy;
+
+      if (b.x < 0 || b.x > ARENA_WIDTH || b.y < 0 || b.y > ARENA_HEIGHT) { s.bullets.splice(i, 1); continue; }
+      if (s.obstacles.some(o => b.x > o.x && b.x < o.x + o.w && b.y > o.y && b.y < o.y + o.h)) { s.bullets.splice(i, 1); continue; }
+
+      const hitNN = (b.owner === 'BOT') && Math.hypot(b.x - s.nnAgent.x, b.y - s.nnAgent.y) < AGENT_RADIUS + 5;
+      const hitBot = (b.owner === 'NN') && Math.hypot(b.x - s.botAgent.x, b.y - s.botAgent.y) < AGENT_RADIUS + 5;
+
+      if (hitNN) {
+        s.nnAgent.hp -= 20;
+        s.currentScore -= 150; // Big Punishment
+        s.bullets.splice(i, 1);
+      } else if (hitBot) {
+        s.botAgent.hp -= 20;
+        s.currentScore += 300; // HUGE Reward
+        s.bullets.splice(i, 1);
       }
     }
 
-    // 2. Steer towards food or wander
-    if (nearestFood && minDist < 150) {
-      const angle = Math.atan2(nearestFood.y - this.y, nearestFood.x - this.x);
-      this.vx += Math.cos(angle) * 0.2;
-      this.vy += Math.sin(angle) * 0.2;
-    } else {
-      // Random wandering
-      this.vx += (Math.random() - 0.5) * 0.5;
-      this.vy += (Math.random() - 0.5) * 0.5;
+    // 5. ROUND END
+    let roundOver = false;
+    let success = false;
+
+    if (s.nnAgent.hp <= 0) { roundOver = true; success = false; s.botWins++; }
+    else if (s.botAgent.hp <= 0) { roundOver = true; success = true; s.nnWins++; s.currentScore += 1000; }
+    else if (s.frame > MAX_FRAMES_PER_ROUND) { roundOver = true; success = false; }
+
+    if (roundOver) {
+      // Did we do better?
+      if (success || s.currentScore > s.bestScore) {
+        s.bestScore = s.currentScore;
+        s.bestBrain = new SimpleNN(s.nnAgent.brain); // Save
+      }
+
+      // Reset
+      s.nnAgent.x = 80; s.nnAgent.y = 80; s.nnAgent.angle = 0; s.nnAgent.hp = 100; s.nnAgent.cooldown = 0;
+      s.botAgent.x = ARENA_WIDTH - 80; s.botAgent.y = ARENA_HEIGHT - 80; s.botAgent.angle = Math.PI; s.botAgent.hp = 100; s.botAgent.cooldown = 0;
+      s.bullets = [];
+      s.frame = 0;
+      s.currentScore = 0;
+      s.generation++;
+
+      // New Brain from Best Brain + Mutation
+      s.nnAgent.brain = new SimpleNN(s.bestBrain);
+      s.nnAgent.brain.mutate(paramsRef.current.mutationRate); // Use REF for latest rate
     }
 
-    // 3. Limit speed
-    const speed = Math.hypot(this.vx, this.vy);
-    if (speed > this.maxSpeed) {
-      this.vx = (this.vx / speed) * this.maxSpeed;
-      this.vy = (this.vy / speed) * this.maxSpeed;
-    }
+    return roundOver;
+  };
 
-    // 4. Move
-    this.x += this.vx;
-    this.y += this.vy;
+  const handleSimulate = async () => {
+    setIsSimulating(true);
+    // Allow UI to update
+    setTimeout(() => {
+      const s = state.current;
+      const target = s.generation + simGenerations;
+      const startT = performance.now();
 
-    // 5. Bounce off walls
-    if (this.x < 0 || this.x > width) this.vx *= -1;
-    if (this.y < 0 || this.y > height) this.vy *= -1;
+      // Simulation Loop
+      while (s.generation < target) {
+        const roundResult = updatePhysics(s, true);
+        // If stuck in a round too long, break round
+        if (s.frame > MAX_FRAMES_PER_ROUND + 10) {
+          // Force round end
+          s.frame = MAX_FRAMES_PER_ROUND + 1;
+          updatePhysics(s, true);
+        }
+        if (performance.now() - startT > 2000) break; // Safety
+      }
 
-    // 6. Keep in bounds
-    this.x = Math.max(0, Math.min(width, this.x));
-    this.y = Math.max(0, Math.min(height, this.y));
+      setDisplayGen(s.generation);
+      setDisplayScore(Math.floor(s.bestScore));
+      setIsSimulating(false);
+    }, 50);
+  };
 
-    // 7. Lose energy
-    this.energy -= 0.2;
-  }
-
-  draw(ctx: CanvasRenderingContext2D) {
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-    // Color depends on energy (Green -> Red)
-    const opacity = Math.max(0.2, this.energy / 100);
-    ctx.fillStyle = `rgba(0, 242, 255, ${opacity})`;
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = '#00f2ff';
-    ctx.fill();
-    ctx.closePath();
-  }
-}
-
-export const FightingAgents: React.FC = () => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [agentCount, setAgentCount] = useState(0);
-  
-  // Refs for simulation state to avoid re-renders during animation loop
-  const agentsRef = useRef<Agent[]>([]);
-  const foodRef = useRef<Point[]>([]);
-  const frameRef = useRef<number>(0);
-
+  // --- MAIN LOOP ---
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+    canvas.width = ARENA_WIDTH;
+    canvas.height = ARENA_HEIGHT;
 
-    // Initial Setup
-    const initSimulation = () => {
-      canvas.width = canvas.parentElement?.clientWidth || 600;
-      canvas.height = 400;
-      
-      // Spawn Agents
-      agentsRef.current = Array.from({ length: 15 }, (_, i) => 
-        new Agent(Math.random() * canvas.width, Math.random() * canvas.height, i)
-      );
+    const render = () => {
+      updatePhysics(state.current, false);
 
-      // Spawn Food
-      foodRef.current = Array.from({ length: 20 }, () => ({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height
-      }));
-    };
+      // Clear
+      ctx.fillStyle = '#0d1219'; ctx.fillRect(0, 0, ARENA_WIDTH, ARENA_HEIGHT);
+      // Grid
+      ctx.strokeStyle = '#1e2530'; ctx.beginPath();
+      for (let x = 0; x < ARENA_WIDTH; x += 40) { ctx.moveTo(x, 0); ctx.lineTo(x, ARENA_HEIGHT); }
+      for (let y = 0; y < ARENA_HEIGHT; y += 40) { ctx.moveTo(0, y); ctx.lineTo(ARENA_WIDTH, y); }
+      ctx.stroke();
 
-    initSimulation();
+      const s = state.current;
 
-    const loop = () => {
-      // Clear Screen with trail effect
-      ctx.fillStyle = 'rgba(13, 17, 23, 0.3)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Obstacles
+      ctx.fillStyle = '#161b22'; ctx.strokeStyle = '#00f2ff';
+      s.obstacles.forEach(o => { ctx.fillRect(o.x, o.y, o.w, o.h); ctx.strokeRect(o.x, o.y, o.w, o.h); });
 
-      // Update & Draw Food
-      ctx.shadowBlur = 0;
-      ctx.fillStyle = '#ff0055';
-      foodRef.current.forEach(f => {
-        ctx.beginPath();
-        ctx.arc(f.x, f.y, 3, 0, Math.PI * 2);
-        ctx.fill();
+      // NN Agent
+      ctx.save(); ctx.translate(s.nnAgent.x, s.nnAgent.y); ctx.rotate(s.nnAgent.angle);
+      ctx.fillStyle = '#00f2ff'; ctx.beginPath(); ctx.arc(0, 0, AGENT_RADIUS, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, -2, 20, 4);
+      ctx.restore();
+      ctx.fillStyle = '#0f0'; ctx.fillRect(s.nnAgent.x - 15, s.nnAgent.y - 25, 30 * (Math.max(0, s.nnAgent.hp) / 100), 4);
+
+      // Bot Agent
+      ctx.save(); ctx.translate(s.botAgent.x, s.botAgent.y); ctx.rotate(s.botAgent.angle);
+      ctx.fillStyle = '#ff0055'; ctx.beginPath(); ctx.arc(0, 0, AGENT_RADIUS, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, -2, 20, 4);
+      ctx.restore();
+      ctx.fillStyle = '#0f0'; ctx.fillRect(s.botAgent.x - 15, s.botAgent.y - 25, 30 * (Math.max(0, s.botAgent.hp) / 100), 4);
+
+      // Bullets
+      s.bullets.forEach(b => {
+        ctx.fillStyle = b.owner === 'NN' ? '#00f2ff' : '#ff0055';
+        ctx.beginPath(); ctx.arc(b.x, b.y, 4, 0, Math.PI * 2); ctx.fill();
       });
 
-      // Update & Draw Agents
-      for (let i = agentsRef.current.length - 1; i >= 0; i--) {
-        const agent = agentsRef.current[i];
-        agent.update(canvas.width, canvas.height, foodRef.current);
-        agent.draw(ctx);
-
-        // Eat Food
-        for (let j = foodRef.current.length - 1; j >= 0; j--) {
-          const f = foodRef.current[j];
-          const dist = Math.hypot(agent.x - f.x, agent.y - f.y);
-          if (dist < 10) {
-            agent.energy = Math.min(100, agent.energy + 30);
-            foodRef.current.splice(j, 1);
-            // Respawn food randomly
-            if (Math.random() > 0.5) {
-                foodRef.current.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height
-                });
-            }
-          }
-        }
-
-        // Death logic
-        if (agent.energy <= 0) {
-          agentsRef.current.splice(i, 1);
-        }
+      if (isSimulating) { // This wont update correctly due to closure unless we check ref
+        // handled by overlay below
       }
 
-      // Randomly spawn food over time
-      if (Math.random() < 0.05) {
-        foodRef.current.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height
-        });
-      }
-
-      setAgentCount(agentsRef.current.length);
-      frameRef.current = requestAnimationFrame(loop);
+      requestRef.current = requestAnimationFrame(render);
     };
 
-    loop();
+    requestRef.current = requestAnimationFrame(render);
+    return () => cancelAnimationFrame(requestRef.current);
+  }, []); // Only mount once.
 
-    const handleResize = () => {
-        canvas.width = canvas.parentElement?.clientWidth || 600;
-    }
-    window.addEventListener('resize', handleResize);
 
-    return () => {
-      cancelAnimationFrame(frameRef.current);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
-
-  const handleReset = () => {
-    const canvas = canvasRef.current;
-    if(!canvas) return;
-    agentsRef.current = Array.from({ length: 15 }, (_, i) => 
-        new Agent(Math.random() * canvas.width, Math.random() * canvas.height, i)
-    );
-    foodRef.current = Array.from({ length: 20 }, () => ({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height
-    }));
-  };
+  // We need a wrapper to ensure `updatePhysics` gets the latest Mutation Rate
+  // We'll use a Ref to sync the UI setting to the Game Loop
+  const paramsRef = useRef({ mutationRate: 0.1 });
+  useEffect(() => { paramsRef.current.mutationRate = mutationRate; }, [mutationRate]);
 
   return (
     <div className="bg-[#0d1219] border border-cyber-border rounded-xl p-6 shadow-2xl relative overflow-hidden group">
-        <div className="flex justify-between items-center mb-4 relative z-10">
-            <div>
-                <h2 className="text-2xl text-white font-bold flex items-center gap-2">
-                    <span className="text-cyber-accent">⚡</span> Fighting Agents
-                </h2>
-                <p className="text-xs text-gray-400 font-mono mt-1">
-                    Simulation: Agents (Blau) suchen Nahrung (Rot) um zu überleben.
-                </p>
+      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-6 relative z-10 gap-6">
+        <div>
+          <h2 className="text-2xl text-white font-bold flex items-center gap-2">
+            <span className="text-cyber-accent">⚡</span> 1v1 Evolution Arena
+          </h2>
+          <div className="flex gap-4 mt-2 text-xs font-mono">
+            <span className="text-cyber-accent flex items-center gap-1">AI (Cyan)</span>
+            <span className="text-[#ff0055] flex items-center gap-1">Bot (Red)</span>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-4 items-center">
+          <div className="bg-black/40 p-2 rounded border border-cyber-border/30 flex items-center gap-3">
+            <div className="flex flex-col">
+              <label className="text-[10px] text-gray-400 uppercase font-mono">Mutation Rate</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="range" min="0.01" max="1.0" step="0.01"
+                  value={mutationRate}
+                  onChange={(e) => setMutationRate(parseFloat(e.target.value))}
+                  className="w-24 accent-cyber-accent h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                />
+                <span className="text-xs text-cyber-accent font-mono w-8">{(mutationRate * 100).toFixed(0)}%</span>
+              </div>
             </div>
-            <div className="flex items-center gap-4">
-                <div className="text-right">
-                    <span className="block text-[10px] text-gray-500 font-mono uppercase">Population</span>
-                    <span className="text-xl font-bold text-cyber-accent font-mono">{agentCount}</span>
-                </div>
-                <button 
-                    onClick={handleReset}
-                    className="px-4 py-2 bg-cyber-card border border-cyber-border hover:border-cyber-accent text-white rounded transition-colors text-sm uppercase font-bold tracking-wider"
+          </div>
+
+          <div className="bg-black/40 p-2 rounded border border-cyber-border/30 flex items-center gap-2">
+            <div className="flex flex-col">
+              <label className="text-[10px] text-gray-400 uppercase font-mono">Train Speed</label>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  value={simGenerations}
+                  onChange={(e) => setSimGenerations(parseInt(e.target.value))}
+                  className="w-16 bg-black border border-gray-700 rounded text-white text-xs px-2 py-1 font-mono focus:border-cyber-accent outline-none"
+                />
+                <button
+                  onClick={handleSimulate}
+                  disabled={isSimulating}
+                  className="px-3 py-1 bg-cyber-accent/20 border border-cyber-accent text-cyber-accent hover:bg-cyber-accent hover:text-black text-xs uppercase font-bold rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    Reset
+                  {isSimulating ? '...' : 'Simulieren'}
                 </button>
+              </div>
             </div>
+          </div>
         </div>
-        
-        <div className="relative rounded-lg overflow-hidden border border-cyber-border/50 bg-black aspect-video">
-            <canvas ref={canvasRef} className="w-full h-full block" />
-            
-            {/* Overlay Grid */}
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(0,242,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,242,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none"></div>
+      </div>
+
+      {/* HUD */}
+      <div className="grid grid-cols-4 gap-4 mb-4">
+        <div className="bg-black/40 p-2 rounded border border-gray-800 text-center">
+          <div className="text-[9px] text-gray-500 uppercase font-mono">Generation</div>
+          <div className="text-xl text-white font-mono font-bold animate-pulse">{displayGen}</div>
         </div>
+        <div className="bg-black/40 p-2 rounded border border-gray-800 text-center">
+          <div className="text-[9px] text-gray-500 uppercase font-mono">High Score</div>
+          <div className="text-xl text-yellow-400 font-mono font-bold">{displayScore.toFixed(0)}</div>
+        </div>
+        <div className="bg-black/40 p-2 rounded border border-gray-800 text-center">
+          <div className="text-[9px] text-gray-500 uppercase font-mono">Bot Wins</div>
+          <div className="text-xl text-[#ff0055] font-mono font-bold">{state.current.botWins}</div>
+        </div>
+        <div className="bg-black/40 p-2 rounded border border-cyber-border/50 text-center">
+          <div className="text-[9px] text-gray-500 uppercase font-mono">AI Wins</div>
+          <div className="text-xl text-cyber-accent font-mono font-bold">{state.current.nnWins}</div>
+        </div>
+      </div>
+
+      <div className="relative rounded-lg overflow-hidden border border-cyber-border/50 bg-black aspect-video w-full group-hover:border-cyber-accent/50 transition-colors">
+        <canvas ref={canvasRef} className="w-full h-full block object-contain" />
+
+        {isSimulating && (
+          <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center backdrop-blur-sm z-20">
+            <div className="w-12 h-12 border-4 border-cyber-accent border-t-transparent rounded-full animate-spin mb-4"></div>
+            <div className="text-cyber-accent font-mono font-bold text-lg animate-pulse">TRAINING IN PROGRESS...</div>
+            <div className="text-gray-400 text-xs mt-2">Simulating {simGenerations} generations in background</div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

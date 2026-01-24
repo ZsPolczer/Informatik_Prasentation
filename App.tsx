@@ -2,7 +2,7 @@ import React from 'react';
 import { Glossary } from './components/Glossary';
 import { TemperatureDemo } from './components/TemperatureDemo';
 import { FightingAgents } from './components/FightingAgents';
-import { AIConsultant } from './components/AIConsultant';
+import { PerceptronVisualizer } from './components/PerceptronVisualizer';
 
 const App: React.FC = () => {
   return (
@@ -21,7 +21,7 @@ const App: React.FC = () => {
       </div>
 
       {/* Main Content Area (Z-Index 10 to sit above background) */}
-      <main className="relative z-10 flex-1 p-4 md:p-8 max-w-5xl mx-auto w-full">
+      <main className="relative z-10 flex-1 p-4 md:p-8 max-w-5xl mx-auto w-full lg:pr-[340px]">
 
         {/* Header / Intro */}
         <header className="mb-16 text-center md:text-left animate-fade-in">
@@ -83,10 +83,12 @@ const App: React.FC = () => {
           <FightingAgents />
         </div>
 
-        {/* AI Consultant */}
+
+
+        {/* Perceptron Visualizer */}
         <div className="relative mb-16">
-          <div className="absolute left-[-20px] top-0 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-purple-500/30 to-transparent hidden md:block"></div>
-          <AIConsultant />
+          <div className="absolute left-[-20px] top-0 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-cyan-500/30 to-transparent hidden md:block"></div>
+          <PerceptronVisualizer />
         </div>
 
         {/* Placeholder for Next Features */}

@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Perceptron Visualization</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f4f9; color: #333; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 20px; }
+        h1 { margin: 0 0 10px 0; }
+        
+        /* LAYOUT CONTAINERS */
+        .main-container {
+            display: flex;
+            gap: 40px;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            flex-wrap: wrap; /* Wraps on small screens */
+            justify-content: center;
+        }
+
+        .panel { display: flex; flex-direction: column; align-items: center; }
+        .divider { width: 2px; background: #eee; height: 400px; margin: 0 10px; }
+
+        /* GRIDS */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(10, 30px);
+            grid-template-rows: repeat(10, 30px);
+            gap: 1px;
+            border: 4px solid #333;
+            background: #ccc;
+        }
+
+        /* INPUT GRID CELLS */
+        .cell { width: 30px; height: 30px; background: white; cursor: crosshair; }
+        .cell.active { background: #222; }
+
+        /* HEATMAP CELLS */
+        .heat-cell { width: 30px; height: 30px; background: white; transition: background 0.2s; }
+
+        /* CONTROLS */
+        button { cursor: pointer; border: none; padding: 8px 12px; border-radius: 4px; font-weight: bold; transition: 0.2s; }
+        
+        .mode-btn { background: #ddd; margin-bottom: 10px; width: 100%; border: 1px solid #ccc; }
+        .mode-btn.erasing { background: #f8bbd0; color: #c2185b; border: 1px solid #c2185b; }
+        
+        .train-group { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-top: 10px; }
+        .train-btn { background: #e3f2fd; color: #1565c0; }
+        .train-btn:hover { background: #bbdefb; }
+        
+        .view-group { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-top: 5px; }
+        .view-btn { background: #f3e5f5; color: #6a1b9a; font-size: 0.8em; }
+        .view-btn.selected { background: #7b1fa2; color: white; }
+
+        /* TEXT ELEMENTS */
+        .label { font-size: 1.2em; font-weight: bold; margin-bottom: 10px; }
+        #result { font-size: 1.5em; color: #d32f2f; height: 30px; margin: 10px 0; text-align: center; }
+        .legend { font-size: 0.75em; margin-top: 10px; display: flex; gap: 10px; }
+        .legend span { display: flex; align-items: center; gap: 5px; }
+        .dot { width: 10px; height: 10px; display: inline-block; border-radius: 50%; }
+    </style>
+</head>
+<body>
+
+    <h1>OCR Perceptron visualizer</h1>
+    <p style="margin-top:0; color:#666;">Draw on the left &middot; See the brain on the right</p>
+
+    <div class="main-container">
+        
+        <!-- LEFT PANEL: INPUT -->
+        <div class="panel">
+            <div class="label">Input: Your Drawing</div>
+            
+            <button id="btn-mode" class="mode-btn" onclick="toggleMode()">Mode: DRAW (Click to Toggle)</button>
+            
+            <div id="input-grid" class="grid-container" oncontextmenu="return false;"></div>
+            
+            <div id="result">...</div>
+            
+            <div style="font-size: 0.9em; margin-top:5px;"><strong>Train:</strong> Tell AI what this is</div>
+            <div class="train-group">
+                <button class="train-btn" onclick="train(0)">0</button>
+                <button class="train-btn" onclick="train(1)">1</button>
+                <button class="train-btn" onclick="train(2)">2</button>
+                <button class="train-btn" onclick="train(3)">3</button>
+                <button class="train-btn" onclick="train(4)">4</button>
+                <button class="train-btn" onclick="train(5)">5</button>
+                <button class="train-btn" onclick="train(6)">6</button>
+                <button class="train-btn" onclick="train(7)">7</button>
+                <button class="train-btn" onclick="train(8)">8</button>
+                <button class="train-btn" onclick="train(9)">9</button>
+            </div>
+            <button onclick="clearGrid()" style="margin-top:10px; width:100%; background:#ffcdd2; color:#b71c1c;">Clear Canvas</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- RIGHT PANEL: VISUALIZATION -->
+        <div class="panel">
+            <div class="label">The Brain: Weights</div>
+            
+            <div style="font-size: 0.8em; color: #555; margin-bottom: 5px; text-align: center; max-width: 300px;">
+                This shows the learned pattern for the number <strong id="viewing-label">0</strong>.
+            </div>
+
+            <div id="heatmap-grid" class="grid-container"></div>
+
+            <div class="legend">
+                <span><i class="dot" style="background:blue"></i> Positive (Good)</span>
+                <span><i class="dot" style="background:white; border:1px solid #ccc"></i> Neutral</span>
+                <span><i class="dot" style="background:red"></i> Negative (Bad)</span>
+            </div>
+
+            <div style="font-size: 0.9em; margin-top:20px;"><strong>Inspect:</strong> Look at brain for...</div>
+            <div class="view-group">
+                <button class="view-btn" onclick="renderHeatmap(0)">0</button>
+                <button class="view-btn" onclick="renderHeatmap(1)">1</button>
+                <button class="view-btn" onclick="renderHeatmap(2)">2</button>
+                <button class="view-btn" onclick="renderHeatmap(3)">3</button>
+                <button class="view-btn" onclick="renderHeatmap(4)">4</button>
+                <button class="view-btn" onclick="renderHeatmap(5)">5</button>
+                <button class="view-btn" onclick="renderHeatmap(6)">6</button>
+                <button class="view-btn" onclick="renderHeatmap(7)">7</button>
+                <button class="view-btn" onclick="renderHeatmap(8)">8</button>
+                <button class="view-btn" onclick="renderHeatmap(9)">9</button>
+            </div>
+        </div>
+
+    </div>
+
+<script>
+    // --- CONFIGURATION ---
+    const totalPixels = 100;
+    
+    // --- STATE ---
+    let inputGrid = new Array(totalPixels).fill(0);
+    // Initialize slightly random weights to break symmetry
+    let weights = {};
+    for(let i=0; i<=9; i++) {
+        weights[i] = new Array(totalPixels).fill(0).map(() => Math.random() * 0.1);
+    }
+
+    // UI State
+    let isMouseDown = false;
+    let isEraserMode = false;
+    let isRightClick = false;
+    let currentlyViewing = 0; // Which number's heatmap is shown?
+
+    // --- DOM ELEMENTS ---
+    const inputGridDiv = document.getElementById('input-grid');
+    const heatmapGridDiv = document.getElementById('heatmap-grid');
+    const resultDiv = document.getElementById('result');
+    const modeBtn = document.getElementById('btn-mode');
+
+    // --- INITIALIZATION ---
+    function init() {
+        // Create both grids
+        for(let i=0; i<totalPixels; i++) {
+            // Left Input Cell
+            let cell = document.createElement('div');
+            cell.classList.add('cell');
+            cell.addEventListener('mousedown', (e) => { 
+                isMouseDown = true; 
+                if(e.button === 2) isRightClick = true; else isRightClick = false;
+                updateCell(i); 
+            });
+            cell.addEventListener('mouseenter', () => { if(isMouseDown) updateCell(i); });
+            inputGridDiv.appendChild(cell);
+
+            // Right Heatmap Cell
+            let heatCell = document.createElement('div');
+            heatCell.classList.add('heat-cell');
+            heatmapGridDiv.appendChild(heatCell);
+        }
+        
+        renderHeatmap(0); // Show "0" brain by default
+    }
+
+    document.addEventListener('mouseup', () => { 
+        if(isMouseDown) {
+            isMouseDown = false; 
+            isRightClick = false;
+            predict(); 
+        }
+    });
+
+    // --- INPUT LOGIC ---
+    function toggleMode() {
+        isEraserMode = !isEraserMode;
+        if(isEraserMode) {
+            modeBtn.innerText = "Mode: ERASE (Right Click)";
+            modeBtn.classList.add('erasing');
+        } else {
+            modeBtn.innerText = "Mode: DRAW (Left Click)";
+            modeBtn.classList.remove('erasing');
+        }
+    }
+
+    function updateCell(index) {
+        const cell = inputGridDiv.children[index];
+        const shouldErase = isRightClick || isEraserMode;
+
+        if (shouldErase) {
+            if(inputGrid[index] === 0) return;
+            inputGrid[index] = 0;
+            cell.classList.remove('active');
+        } else {
+            if(inputGrid[index] === 1) return;
+            inputGrid[index] = 1;
+            cell.classList.add('active');
+        }
+    }
+
+    function clearGrid() {
+        inputGrid.fill(0);
+        Array.from(inputGridDiv.children).forEach(c => c.classList.remove('active'));
+        resultDiv.innerText = "...";
+    }
+
+    // --- AI LOGIC ---
+    function predict() {
+        let bestLabel = -1;
+        let bestScore = -Infinity;
+
+        for(let label = 0; label <= 9; label++) {
+            let score = 0;
+            for(let i=0; i<totalPixels; i++) {
+                score += inputGrid[i] * weights[label][i]; 
+            }
+            if(score > bestScore) {
+                bestScore = score;
+                bestLabel = label;
+            }
+        }
+        
+        resultDiv.innerText = "Prediction: " + bestLabel;
+        
+        // Auto-switch the visualization to show the predicted number
+        renderHeatmap(bestLabel);
+        return bestLabel;
+    }
+
+    function train(correctLabel) {
+        let currentPrediction = predict(); // Gets current state before correction
+
+        for(let i=0; i<totalPixels; i++) {
+            if(inputGrid[i] === 1) {
+                // Reinforce correct path
+                weights[correctLabel][i] += 1; 
+                
+                // Punish wrong path (if it guessed wrong)
+                if(currentPrediction !== correctLabel) {
+                    weights[currentPrediction][i] -= 1;
+                }
+            }
+        }
+        
+        resultDiv.innerText = "Learned: " + correctLabel;
+        
+        // Update the visualizer to show the number we just trained
+        renderHeatmap(correctLabel);
+        
+        setTimeout(clearGrid, 600);
+    }
+
+    // --- VISUALIZATION LOGIC (THE HEATMAP) ---
+    function renderHeatmap(label) {
+        currentlyViewing = label;
+        document.getElementById('viewing-label').innerText = label;
+        
+        // Highlight the selected button
+        document.querySelectorAll('.view-btn').forEach((btn, idx) => {
+            if(idx === label) btn.classList.add('selected');
+            else btn.classList.remove('selected');
+        });
+
+        const currentWeights = weights[label];
+        
+        // Find Max Absolute weight to normalize colors (so the brightest color is the strongest weight)
+        // We use Math.abs because negative numbers should also be bright (Bright Red)
+        let maxVal = 0;
+        for(let w of currentWeights) {
+            if(Math.abs(w) > maxVal) maxVal = Math.abs(w);
+        }
+        if(maxVal === 0) maxVal = 1; // Prevent divide by zero
+
+        // Update every cell in the right-hand grid
+        for(let i=0; i<totalPixels; i++) {
+            const w = currentWeights[i];
+            const cell = heatmapGridDiv.children[i];
+            
+            // Calculate Intensity (0.0 to 1.0)
+            const intensity = Math.abs(w) / maxVal;
+            
+            if(w > 0) {
+                // Positive Weight = Blue
+                // We use rgba. 255 opacity means strongest blue.
+                cell.style.background = `rgba(33, 150, 243, ${intensity})`;
+            } else if (w < 0) {
+                // Negative Weight = Red
+                cell.style.background = `rgba(244, 67, 54, ${intensity})`;
+            } else {
+                // Zero = White
+                cell.style.background = 'white';
+            }
+        }
+    }
+
+    // Start
+    init();
+
+</script>
+</body>
+</html>
