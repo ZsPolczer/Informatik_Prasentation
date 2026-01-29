@@ -71,12 +71,29 @@ class SimpleNN {
 
     return output;
   }
+  toJSON() {
+    return {
+      w1: this.weights1,
+      b1: this.bias1,
+      w2: this.weights2,
+      b2: this.bias2
+    };
+  }
+
+  static fromJSON(json: any): SimpleNN {
+    const nn = new SimpleNN();
+    nn.weights1 = json.w1 || nn.weights1;
+    nn.bias1 = json.b1 || nn.bias1;
+    nn.weights2 = json.w2 || nn.weights2;
+    nn.bias2 = json.b2 || nn.bias2;
+    return nn;
+  }
 }
 
 // --- GAME STATE ---
 interface GameState {
   nnAgent: { x: number, y: number, angle: number, hp: number, cooldown: number, brain: SimpleNN };
-  botAgent: { x: number, y: number, angle: number, hp: number, cooldown: number, reactionTimer: number };
+  botAgent: { x: number, y: number, angle: number, hp: number, cooldown: number, reactionTimer: number, brain?: SimpleNN };
   bullets: Bullet[];
   obstacles: Obstacle[];
   frame: number;
@@ -99,6 +116,46 @@ export const FightingAgents: React.FC = () => {
   const [isSimulating, setIsSimulating] = useState(false);
   const [displayGen, setDisplayGen] = useState(1);
   const [displayScore, setDisplayScore] = useState(0);
+  const [savedAgents, setSavedAgents] = useState<string[]>([]);
+
+  // Load saved agents on mount
+  useEffect(() => {
+    updateSavedList();
+  }, []);
+
+  const updateSavedList = () => {
+    const keys = Object.keys(localStorage).filter(k => k.startsWith('AGENT_'));
+    setSavedAgents(keys.map(k => k.replace('AGENT_', '')));
+  };
+
+  const saveAgent = () => {
+    const name = prompt("Name this agent:", `Gen ${state.current.generation} Score ${state.current.bestScore.toFixed(0)}`);
+    if (name) {
+      localStorage.setItem('AGENT_' + name, JSON.stringify(state.current.bestBrain.toJSON()));
+      updateSavedList();
+    }
+  };
+
+  const loadAgent = (name: string, slot: 'NN' | 'BOT') => {
+    const jsonStr = localStorage.getItem('AGENT_' + name);
+    if (!jsonStr) return;
+    const json = JSON.parse(jsonStr);
+    const brain = SimpleNN.fromJSON(json);
+
+    if (slot === 'NN') {
+      state.current.nnAgent.brain = brain;
+      state.current.bestBrain = new SimpleNN(brain); // Also set consistent best
+      // Reset score/gen as we are starting fresh with new brain
+      state.current.generation = 1;
+      state.current.currentScore = 0;
+    } else {
+      state.current.botAgent.brain = brain;
+    }
+  };
+
+  const resetBot = () => {
+    state.current.botAgent.brain = undefined;
+  };
 
   // Mutable Game State
   const state = useRef<GameState>({
@@ -233,56 +290,127 @@ export const FightingAgents: React.FC = () => {
 
 
     // 3. BOT LOGIC
-    const bDx = s.nnAgent.x - s.botAgent.x;
-    const bDy = s.nnAgent.y - s.botAgent.y;
-    const bDist = Math.sqrt(bDx * bDx + bDy * bDy);
-    const bAngle = Math.atan2(bDy, bDx);
-    let bRelAngle = bAngle - s.botAgent.angle;
-    while (bRelAngle > Math.PI) bRelAngle -= Math.PI * 2;
-    while (bRelAngle < -Math.PI) bRelAngle += Math.PI * 2;
+    // If Bot has a brain, use NN logic
+    if (s.botAgent.brain) {
+      const brain = s.botAgent.brain;
+      // RELATIVE SENSORS (Mirrored for Bot)
+      const dx = s.nnAgent.x - s.botAgent.x;
+      const dy = s.nnAgent.y - s.botAgent.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const angleToEnemy = Math.atan2(dy, dx);
+      let relAngle = angleToEnemy - s.botAgent.angle;
+      while (relAngle > Math.PI) relAngle -= Math.PI * 2;
+      while (relAngle < -Math.PI) relAngle += Math.PI * 2;
 
-    s.botAgent.angle += bRelAngle * 0.1;
+      // LOS
+      let los = 1;
+      for (let i = 1; i <= 5; i++) {
+        if (checkCol(s.botAgent.x + dx * (i / 5), s.botAgent.y + dy * (i / 5), 2, s.obstacles)) { los = 0; break; }
+      }
 
-    let bSpeed = 0;
-    if (bDist > 300) bSpeed = AGENT_SPEED * 0.6; // Chase slowly
-    else if (bDist < 100) bSpeed = -AGENT_SPEED * 0.5; // Back up
+      const castRay = (angOffset: number) => {
+        const rayLen = 150;
+        const steps = 10;
+        const ax = Math.cos(s.botAgent.angle + angOffset);
+        const ay = Math.sin(s.botAgent.angle + angOffset);
+        for (let i = 1; i <= steps; i++) {
+          const d = (i / steps) * rayLen;
+          if (checkCol(s.botAgent.x + ax * d, s.botAgent.y + ay * d, 5, s.obstacles)) return 1.0 - (i / steps);
+        }
+        return 0.0;
+      };
 
-    if (Math.abs(bSpeed) > 0.1) {
-      const nx = s.botAgent.x + Math.cos(s.botAgent.angle) * bSpeed;
-      const ny = s.botAgent.y + Math.sin(s.botAgent.angle) * bSpeed;
-      if (!checkCol(nx, ny, AGENT_RADIUS, s.obstacles)) { s.botAgent.x = nx; s.botAgent.y = ny; }
-    }
+      const inputs = [
+        relAngle / Math.PI,
+        dist / ARENA_WIDTH,
+        los,
+        castRay(0),
+        castRay(-0.5),
+        castRay(0.5),
+        s.botAgent.cooldown / COOLDOWN,
+        1
+      ];
 
-    if (Math.abs(bRelAngle) < 0.3 && s.botAgent.cooldown <= 0 && bDist < 450) {
-      let clearShot = true;
-      for (let i = 1; i < 5; i++) { if (checkCol(s.botAgent.x + bDx * (i / 5), s.botAgent.y + bDy * (i / 5), 2, s.obstacles)) clearShot = false; }
+      const [turn, move, shoot] = brain.predict(inputs);
 
-      if (clearShot) {
-        // If seeing enemy for first time, set reaction delay
-        if (s.botAgent.reactionTimer === 0) {
-          s.botAgent.reactionTimer = Math.floor(Math.random() * 6) + 6; // 6-12 frames (~100-200ms)
-        } else {
-          s.botAgent.reactionTimer--;
+      s.botAgent.angle += turn * 0.15;
+      let speed = 0;
+      if (move > 0) speed = AGENT_SPEED;
+      else if (move < -0.2) speed = -AGENT_SPEED * 0.5;
 
-          // Ready to fire?
-          if (s.botAgent.reactionTimer <= 1) {
-            s.bullets.push({
-              x: s.botAgent.x + Math.cos(s.botAgent.angle) * 20,
-              y: s.botAgent.y + Math.sin(s.botAgent.angle) * 20,
-              vx: Math.cos(s.botAgent.angle) * BULLET_SPEED,
-              vy: Math.sin(s.botAgent.angle) * BULLET_SPEED,
-              owner: 'BOT',
-              id: Math.random()
-            });
-            s.botAgent.cooldown = COOLDOWN * 1.5;
-            s.botAgent.reactionTimer = 0; // Reset
+      if (Math.abs(speed) > 0) {
+        const nx = s.botAgent.x + Math.cos(s.botAgent.angle) * speed;
+        const ny = s.botAgent.y + Math.sin(s.botAgent.angle) * speed;
+        if (!checkCol(nx, ny, AGENT_RADIUS, s.obstacles)) {
+          s.botAgent.x = nx; s.botAgent.y = ny;
+        }
+      }
+
+      if (shoot > 0.0 && s.botAgent.cooldown <= 0) {
+        s.bullets.push({
+          x: s.botAgent.x + Math.cos(s.botAgent.angle) * 20,
+          y: s.botAgent.y + Math.sin(s.botAgent.angle) * 20,
+          vx: Math.cos(s.botAgent.angle) * BULLET_SPEED,
+          vy: Math.sin(s.botAgent.angle) * BULLET_SPEED,
+          owner: 'BOT',
+          id: Math.random()
+        });
+        s.botAgent.cooldown = COOLDOWN;
+      }
+
+    } else {
+      // --- HARDCODED BOT LOGIC (Fallback) ---
+      const bDx = s.nnAgent.x - s.botAgent.x;
+      const bDy = s.nnAgent.y - s.botAgent.y;
+      const bDist = Math.sqrt(bDx * bDx + bDy * bDy);
+      const bAngle = Math.atan2(bDy, bDx);
+      let bRelAngle = bAngle - s.botAgent.angle;
+      while (bRelAngle > Math.PI) bRelAngle -= Math.PI * 2;
+      while (bRelAngle < -Math.PI) bRelAngle += Math.PI * 2;
+
+      s.botAgent.angle += bRelAngle * 0.1;
+
+      let bSpeed = 0;
+      if (bDist > 300) bSpeed = AGENT_SPEED * 0.6; // Chase slowly
+      else if (bDist < 100) bSpeed = -AGENT_SPEED * 0.5; // Back up
+
+      if (Math.abs(bSpeed) > 0.1) {
+        const nx = s.botAgent.x + Math.cos(s.botAgent.angle) * bSpeed;
+        const ny = s.botAgent.y + Math.sin(s.botAgent.angle) * bSpeed;
+        if (!checkCol(nx, ny, AGENT_RADIUS, s.obstacles)) { s.botAgent.x = nx; s.botAgent.y = ny; }
+      }
+
+      if (Math.abs(bRelAngle) < 0.3 && s.botAgent.cooldown <= 0 && bDist < 450) {
+        let clearShot = true;
+        for (let i = 1; i < 5; i++) { if (checkCol(s.botAgent.x + bDx * (i / 5), s.botAgent.y + bDy * (i / 5), 2, s.obstacles)) clearShot = false; }
+
+        if (clearShot) {
+          // If seeing enemy for first time, set reaction delay
+          if (s.botAgent.reactionTimer === 0) {
+            s.botAgent.reactionTimer = Math.floor(Math.random() * 6) + 6; // 6-12 frames (~100-200ms)
+          } else {
+            s.botAgent.reactionTimer--;
+
+            // Ready to fire?
+            if (s.botAgent.reactionTimer <= 1) {
+              s.bullets.push({
+                x: s.botAgent.x + Math.cos(s.botAgent.angle) * 20,
+                y: s.botAgent.y + Math.sin(s.botAgent.angle) * 20,
+                vx: Math.cos(s.botAgent.angle) * BULLET_SPEED,
+                vy: Math.sin(s.botAgent.angle) * BULLET_SPEED,
+                owner: 'BOT',
+                id: Math.random()
+              });
+              s.botAgent.cooldown = COOLDOWN * 1.5;
+              s.botAgent.reactionTimer = 0; // Reset
+            }
           }
+        } else {
+          s.botAgent.reactionTimer = 0; // Lost LoS, reset timer
         }
       } else {
-        s.botAgent.reactionTimer = 0; // Lost LoS, reset timer
+        s.botAgent.reactionTimer = 0; // Not aiming/in range, reset timer
       }
-    } else {
-      s.botAgent.reactionTimer = 0; // Not aiming/in range, reset timer
     }
     if (s.botAgent.cooldown > 0) s.botAgent.cooldown--;
 
@@ -502,6 +630,38 @@ export const FightingAgents: React.FC = () => {
         <div className="bg-black/40 p-2 rounded border border-cyber-border/50 text-center">
           <div className="text-[9px] text-gray-500 uppercase font-mono">AI Wins</div>
           <div className="text-xl text-cyber-accent font-mono font-bold">{state.current.nnWins}</div>
+        </div>
+      </div>
+
+      {/* MANAGED AGENTS */}
+      <div className="mb-4 bg-black/40 p-4 rounded border border-cyber-border/20">
+        <div className="flex justify-between items-center mb-3">
+          <h3 className="text-white font-mono text-sm font-bold">SAVED AGENTS</h3>
+          <button onClick={saveAgent} className="text-[10px] bg-cyber-accent/20 text-cyber-accent px-2 py-1 rounded hover:bg-cyber-accent hover:text-black transition">
+            SAVE BEST BRAIN
+          </button>
+        </div>
+        <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+          {savedAgents.length === 0 && <span className="text-gray-600 text-xs italic">No agents saved yet.</span>}
+          {savedAgents.map(name => (
+            <div key={name} className="flex flex-col bg-gray-900 border border-gray-700 rounded p-2 text-xs">
+              <span className="text-gray-300 font-bold mb-1 truncate max-w-[120px]">{name}</span>
+              <div className="flex gap-1">
+                <button onClick={() => loadAgent(name, 'NN')} className="px-1 py-0.5 bg-[#00f2ff]/20 text-[#00f2ff] hover:bg-[#00f2ff] hover:text-black rounded text-[9px] uppercase">
+                  Load Blue
+                </button>
+                <button onClick={() => loadAgent(name, 'BOT')} className="px-1 py-0.5 bg-[#ff0055]/20 text-[#ff0055] hover:bg-[#ff0055] hover:text-black rounded text-[9px] uppercase">
+                  Load Red
+                </button>
+              </div>
+            </div>
+          ))}
+          <div className="flex flex-col bg-gray-900 border border-gray-700 rounded p-2 text-xs border-dashed opacity-50 hover:opacity-100">
+            <span className="text-gray-400 font-bold mb-1">Standard Bot</span>
+            <button onClick={resetBot} className="px-1 py-0.5 bg-gray-700 text-white hover:bg-white hover:text-black rounded text-[9px] uppercase">
+              Reset Red
+            </button>
+          </div>
         </div>
       </div>
 
