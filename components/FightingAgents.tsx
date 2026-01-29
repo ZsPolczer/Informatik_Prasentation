@@ -14,8 +14,8 @@ interface Bullet { x: number; y: number; vx: number; vy: number; owner: 'NN' | '
 interface Obstacle { x: number; y: number; w: number; h: number; }
 
 // --- SIMPLE CRUDE NEURAL NETWORK ---
-const INPUT_SIZE = 7;
-const HIDDEN_SIZE = 8;
+const INPUT_SIZE = 8; // Added Cooldown
+const HIDDEN_SIZE = 12; // Increased brain power
 const OUTPUT_SIZE = 3; // Turn, Move, Shoot
 
 class SimpleNN {
@@ -160,7 +160,8 @@ export const FightingAgents: React.FC = () => {
       feel(0),               // 3: Wall Forward
       feel(-0.5),            // 4: Wall Left
       feel(0.5),             // 5: Wall Right
-      1                      // 6: Bias
+      s.nnAgent.cooldown / COOLDOWN, // 6: My Cooldown (0 to 1)
+      1                      // 7: Bias
     ];
 
     const [turn, move, shoot] = s.nnAgent.brain.predict(inputs);
@@ -168,8 +169,15 @@ export const FightingAgents: React.FC = () => {
     // 2. NN ACTIONS
     s.nnAgent.angle += turn * 0.15; // Limit turn speed
 
-    // Penalize spinning endlessly
-    if (Math.abs(turn) > 0.8) s.currentScore -= 0.1;
+    // REWARD/PUNISHMENT LOGIC
+
+    // Penalize spinning endlessly (if turn is consistently high)
+    if (Math.abs(turn) > 0.8) s.currentScore -= 0.5; // Increased penalty
+
+    // Reward facing the enemy (Aiming)
+    if (Math.abs(relAngle) < 0.2 && los === 1) {
+      s.currentScore += 0.2; // Continuous reward for good aim
+    }
 
     // Move
     let speed = 0;
@@ -185,7 +193,7 @@ export const FightingAgents: React.FC = () => {
         s.nnAgent.y = nextY;
         s.currentScore += 0.05; // Reward movement
       } else {
-        s.currentScore -= 1.0; // HEAVY penalty for hitting wall (was -0.5)
+        s.currentScore -= 1.0; // HEAVY penalty for hitting wall
       }
     } else {
       s.currentScore -= 0.01; // Tiny penalty for standing still
@@ -204,8 +212,10 @@ export const FightingAgents: React.FC = () => {
       s.nnAgent.cooldown = COOLDOWN;
 
       // REWARD: Shooting when looking/aiming at enemy is good
-      if (Math.abs(relAngle) < 0.5 && los === 1) {
-        s.currentScore += 10;
+      if (Math.abs(relAngle) < 0.3 && los === 1) {
+        s.currentScore += 15; // Increased reward for good shot
+      } else {
+        s.currentScore -= 2; // Penalty for wasting ammo / undefined shooting
       }
     }
     if (s.nnAgent.cooldown > 0) s.nnAgent.cooldown--;
@@ -278,7 +288,11 @@ export const FightingAgents: React.FC = () => {
 
     if (s.nnAgent.hp <= 0) { roundOver = true; success = false; s.botWins++; }
     else if (s.botAgent.hp <= 0) { roundOver = true; success = true; s.nnWins++; s.currentScore += 1000; }
-    else if (s.frame > MAX_FRAMES_PER_ROUND) { roundOver = true; success = false; }
+    else if (s.frame > MAX_FRAMES_PER_ROUND) {
+      roundOver = true;
+      success = false;
+      s.currentScore -= 500; // PENATLY FOR TIMEOUT to discourage hiding
+    }
 
     if (roundOver) {
       // Did we do better?
