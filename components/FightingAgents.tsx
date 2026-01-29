@@ -157,6 +157,18 @@ export const FightingAgents: React.FC = () => {
     state.current.botAgent.brain = undefined;
   };
 
+  const resetBlue = () => {
+    state.current.nnAgent.brain = new SimpleNN();
+    state.current.bestBrain = new SimpleNN(state.current.nnAgent.brain);
+    state.current.generation = 1;
+    state.current.currentScore = 0;
+    state.current.bestScore = -Infinity;
+    state.current.nnWins = 0;
+    state.current.botWins = 0;
+    setDisplayGen(1);
+    setDisplayScore(0);
+  };
+
   // Mutable Game State
   const state = useRef<GameState>({
     nnAgent: { x: 50, y: 50, angle: 0, hp: 100, cooldown: 0, brain: new SimpleNN() },
@@ -660,6 +672,12 @@ export const FightingAgents: React.FC = () => {
             <span className="text-gray-400 font-bold mb-1">Standard Bot</span>
             <button onClick={resetBot} className="px-1 py-0.5 bg-gray-700 text-white hover:bg-white hover:text-black rounded text-[9px] uppercase">
               Reset Red
+            </button>
+          </div>
+          <div className="flex flex-col bg-gray-900 border border-gray-700 rounded p-2 text-xs border-dashed opacity-50 hover:opacity-100">
+            <span className="text-gray-400 font-bold mb-1">New Random</span>
+            <button onClick={resetBlue} className="px-1 py-0.5 bg-gray-700 text-white hover:bg-white hover:text-black rounded text-[9px] uppercase">
+              Reset Blue
             </button>
           </div>
         </div>
