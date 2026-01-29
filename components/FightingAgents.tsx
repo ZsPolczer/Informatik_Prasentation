@@ -35,7 +35,10 @@ class SimpleNN {
       this.weights1 = Array(INPUT_SIZE).fill(0).map(() => Array(HIDDEN_SIZE).fill(0).map(() => Math.random() * 2 - 1));
       this.bias1 = Array(HIDDEN_SIZE).fill(0).map(() => Math.random() * 2 - 1);
       this.weights2 = Array(HIDDEN_SIZE).fill(0).map(() => Array(OUTPUT_SIZE).fill(0).map(() => Math.random() * 2 - 1));
-      this.bias2 = Array(OUTPUT_SIZE).fill(0).map(() => Math.random() * 2 - 1);
+      this.bias2 = Array(OUTPUT_SIZE).fill(0).map((_, i) => {
+        if (i === 2) return Math.random() * 1.5 + 0.5; // Bias SHOOT (index 2) to be positive (0.5 to 2.0)
+        return Math.random() * 2 - 1;
+      });
     }
   }
 
@@ -143,23 +146,31 @@ export const FightingAgents: React.FC = () => {
       if (checkCol(s.nnAgent.x + dx * (i / 5), s.nnAgent.y + dy * (i / 5), 2, s.obstacles)) { los = 0; break; }
     }
 
-    // Wall Sensors (Forward, Left, Right)
-    const feel = (angOffset: number) => {
+    // Wall Sensors (Raycasting)
+    const castRay = (angOffset: number) => {
+      const rayLen = 150; // Increased range (was 40)
+      const steps = 10;
       const ax = Math.cos(s.nnAgent.angle + angOffset);
       const ay = Math.sin(s.nnAgent.angle + angOffset);
-      // Only check 40px out (immediate danger)
-      const cx = s.nnAgent.x + ax * 40;
-      const cy = s.nnAgent.y + ay * 40;
-      return checkCol(cx, cy, 2, s.obstacles) ? 1.0 : 0.0;
+
+      for (let i = 1; i <= steps; i++) {
+        const dist = (i / steps) * rayLen;
+        const cx = s.nnAgent.x + ax * dist;
+        const cy = s.nnAgent.y + ay * dist;
+        if (checkCol(cx, cy, 5, s.obstacles)) { // Check a bit smaller radius for ray
+          return 1.0 - (i / steps); // 1.0 = TOUCHING, 0.0 = FAR
+        }
+      }
+      return 0.0;
     };
 
     const inputs = [
       relAngle / Math.PI,    // 0: Angle to enemy (-1 to 1)
       dist / ARENA_WIDTH,    // 1: Distance relative to arena width
       los,                   // 2: Can I see enemy? (0 or 1)
-      feel(0),               // 3: Wall Forward
-      feel(-0.5),            // 4: Wall Left
-      feel(0.5),             // 5: Wall Right
+      castRay(0),            // 3: Wall Forward (Analog)
+      castRay(-0.5),         // 4: Wall Left (Analog)
+      castRay(0.5),          // 5: Wall Right (Analog)
       s.nnAgent.cooldown / COOLDOWN, // 6: My Cooldown (0 to 1)
       1                      // 7: Bias
     ];
