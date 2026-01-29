@@ -73,7 +73,7 @@ class SimpleNN {
 // --- GAME STATE ---
 interface GameState {
   nnAgent: { x: number, y: number, angle: number, hp: number, cooldown: number, brain: SimpleNN };
-  botAgent: { x: number, y: number, angle: number, hp: number, cooldown: number };
+  botAgent: { x: number, y: number, angle: number, hp: number, cooldown: number, reactionTimer: number };
   bullets: Bullet[];
   obstacles: Obstacle[];
   frame: number;
@@ -100,7 +100,7 @@ export const FightingAgents: React.FC = () => {
   // Mutable Game State
   const state = useRef<GameState>({
     nnAgent: { x: 50, y: 50, angle: 0, hp: 100, cooldown: 0, brain: new SimpleNN() },
-    botAgent: { x: 750, y: 450, angle: Math.PI, hp: 100, cooldown: 0 },
+    botAgent: { x: 750, y: 450, angle: Math.PI, hp: 100, cooldown: 0, reactionTimer: 0 },
     bullets: [],
     obstacles: [
       { x: 300, y: 150, w: 200, h: 20 },
@@ -245,17 +245,33 @@ export const FightingAgents: React.FC = () => {
     if (Math.abs(bRelAngle) < 0.3 && s.botAgent.cooldown <= 0 && bDist < 450) {
       let clearShot = true;
       for (let i = 1; i < 5; i++) { if (checkCol(s.botAgent.x + bDx * (i / 5), s.botAgent.y + bDy * (i / 5), 2, s.obstacles)) clearShot = false; }
+
       if (clearShot) {
-        s.bullets.push({
-          x: s.botAgent.x + Math.cos(s.botAgent.angle) * 20,
-          y: s.botAgent.y + Math.sin(s.botAgent.angle) * 20,
-          vx: Math.cos(s.botAgent.angle) * BULLET_SPEED,
-          vy: Math.sin(s.botAgent.angle) * BULLET_SPEED,
-          owner: 'BOT',
-          id: Math.random()
-        });
-        s.botAgent.cooldown = COOLDOWN * 1.5;
+        // If seeing enemy for first time, set reaction delay
+        if (s.botAgent.reactionTimer === 0) {
+          s.botAgent.reactionTimer = Math.floor(Math.random() * 6) + 6; // 6-12 frames (~100-200ms)
+        } else {
+          s.botAgent.reactionTimer--;
+
+          // Ready to fire?
+          if (s.botAgent.reactionTimer <= 1) {
+            s.bullets.push({
+              x: s.botAgent.x + Math.cos(s.botAgent.angle) * 20,
+              y: s.botAgent.y + Math.sin(s.botAgent.angle) * 20,
+              vx: Math.cos(s.botAgent.angle) * BULLET_SPEED,
+              vy: Math.sin(s.botAgent.angle) * BULLET_SPEED,
+              owner: 'BOT',
+              id: Math.random()
+            });
+            s.botAgent.cooldown = COOLDOWN * 1.5;
+            s.botAgent.reactionTimer = 0; // Reset
+          }
+        }
+      } else {
+        s.botAgent.reactionTimer = 0; // Lost LoS, reset timer
       }
+    } else {
+      s.botAgent.reactionTimer = 0; // Not aiming/in range, reset timer
     }
     if (s.botAgent.cooldown > 0) s.botAgent.cooldown--;
 
@@ -303,7 +319,7 @@ export const FightingAgents: React.FC = () => {
 
       // Reset
       s.nnAgent.x = 80; s.nnAgent.y = 80; s.nnAgent.angle = 0; s.nnAgent.hp = 100; s.nnAgent.cooldown = 0;
-      s.botAgent.x = ARENA_WIDTH - 80; s.botAgent.y = ARENA_HEIGHT - 80; s.botAgent.angle = Math.PI; s.botAgent.hp = 100; s.botAgent.cooldown = 0;
+      s.botAgent.x = ARENA_WIDTH - 80; s.botAgent.y = ARENA_HEIGHT - 80; s.botAgent.angle = Math.PI; s.botAgent.hp = 100; s.botAgent.cooldown = 0; s.botAgent.reactionTimer = 0;
       s.bullets = [];
       s.frame = 0;
       s.currentScore = 0;
