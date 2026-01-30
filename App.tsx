@@ -114,48 +114,111 @@ const App: React.FC = () => {
                 <h2 className="text-2xl text-white font-bold mb-2">Machine Learning (Perzeptron)</h2>
                 <p className="text-gray-400">Ein Blick in die einfachste Form eines neuronalen Netzes: Das Perzeptron. Zeichne eine Zahl!</p>
               </div>
-              <div className="bg-cyber-card/30 border border-cyber-border/50 rounded-xl p-6 mb-8 backdrop-blur-sm">
-                <h3 className="text-lg text-cyber-accent font-bold mb-4 flex items-center gap-2">
-                  <span className="text-xl">🧠</span> Wie funktioniert das Gehirn?
-                </h3>
-                <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-300">
-                  <li className="flex gap-3">
-                    <span className="text-cyber-accent mt-1">●</span>
-                    <span>
-                      <strong className="text-white">Inspiriert vom Gehirn:</strong> Neuronen sind mit Werten (Aktivierung 0.0 - 1.0) verbunden.
-                    </span>
-                  </li>
-                  <li className="flex gap-3">
-                    <span className="text-cyber-accent mt-1">●</span>
-                    <span>
-                      <strong className="text-white">Sigmoid-Funktion:</strong> "Quetscht" alle Werte in einen Bereich zwischen 0 und 1.
-                    </span>
-                  </li>
-                  <li className="flex gap-3">
-                    <span className="text-cyber-accent mt-1">●</span>
-                    <span>
-                      <strong className="text-white">Gewichte & Bias:</strong> Etwa <span className="text-cyber-accent font-mono">13.002</span> Stellschrauben beeinflussen das Ergebnis (Rot = Negativ, Grün = Positiv).
-                    </span>
-                  </li>
-                  <li className="flex gap-3">
-                    <span className="text-cyber-accent mt-1">●</span>
-                    <span>
-                      <strong className="text-white">Schichten-Architektur:</strong> Erste Schichten erkennen Kanten, tiefere Schichten erkennen Formen und Ziffern.
-                    </span>
-                  </li>
-                  <li className="flex gap-3">
-                    <span className="text-cyber-accent mt-1">●</span>
-                    <span>
-                      <strong className="text-white">Mustererkennung:</strong> Jedes Neuron steht für ein abstraktes Teil, wie eine Linie.
-                    </span>
-                  </li>
-                  <li className="flex gap-3">
-                    <span className="text-cyber-accent mt-1">●</span>
-                    <span>
-                      <strong className="text-white">Entscheidung:</strong> Das "hellste" der letzten 10 Neuronen bestimmt die erkannte Zahl (0-9).
-                    </span>
-                  </li>
-                </ul>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+                {/* --- CARD 1: KONZEPT --- */}
+                <div className="bg-cyber-card/40 border border-cyber-border/50 rounded-xl p-6 backdrop-blur-sm hover:border-cyber-accent/50 transition-colors">
+                  <h3 className="text-lg text-cyber-accent font-bold mb-3 flex items-center gap-2">
+                    <span className="text-xl">🧠</span> Das Konzept
+                  </h3>
+                  <ul className="space-y-3 text-sm text-gray-400">
+                    <li className="flex gap-2">
+                      <span className="text-cyber-accent">●</span>
+                      <span>
+                        <strong className="text-gray-200">Biologisches Vorbild:</strong> Inspiriert von unserem Gehirn. Neuronen feuern Signale ab.
+                      </span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="text-cyber-accent">●</span>
+                      <span>
+                        <strong className="text-gray-200">Aktivierung:</strong> Jedes Neuron hat einen Wert zwischen 0 (inaktiv/schwarz) und 1 (aktiv/weiß).
+                      </span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="text-cyber-accent">●</span>
+                      <span>
+                        <strong className="text-gray-200">Das Ziel:</strong> Das Netzwerk soll lernen, abstrakte Muster (wie die Form einer "3") zu erkennen.
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* --- CARD 2: STRUKTUR --- */}
+                <div className="bg-cyber-card/40 border border-cyber-border/50 rounded-xl p-6 backdrop-blur-sm hover:border-cyber-accent/50 transition-colors">
+                  <h3 className="text-lg text-cyber-accent font-bold mb-3 flex items-center gap-2">
+                    <span className="text-xl">🏗️</span> Die Architektur
+                  </h3>
+                  <ul className="space-y-3 text-sm text-gray-400">
+                    <li className="flex gap-2">
+                      <span className="text-cyber-accent">●</span>
+                      <span>
+                        <strong className="text-gray-200">Layer (Schichten):</strong> Information fließt von links nach rechts durch mehrere Schichten.
+                      </span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="text-cyber-accent">●</span>
+                      <span>
+                        <strong className="text-gray-200">Hidden Layers:</strong> Die "versteckten" Schichten in der Mitte verarbeiten die Informationen.
+                      </span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="text-cyber-accent">●</span>
+                      <span>
+                        <strong className="text-gray-200">Output Layer:</strong> Am Ende bleiben genau 10 Neuronen. Das "hellste" gewinnt und ist die vorhergesagte Zahl (0-9).
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* --- CARD 3: VISION --- */}
+                <div className="bg-cyber-card/40 border border-cyber-border/50 rounded-xl p-6 backdrop-blur-sm hover:border-cyber-accent/50 transition-colors">
+                  <h3 className="text-lg text-cyber-accent font-bold mb-3 flex items-center gap-2">
+                    <span className="text-xl">👁️</span> Wie es "sieht"
+                  </h3>
+                  <div className="text-sm text-gray-400 space-y-3">
+                    <p>Das Problem wird in kleine Teile zerlegt:</p>
+                    <div className="pl-2 border-l-2 border-cyber-accent/30 space-y-2">
+                      <div>
+                        <span className="text-xs font-mono uppercase text-cyber-accent">Schicht 1</span>
+                        <br />Erkennt kleine Kanten und Linien-Abschnitte.
+                      </div>
+                      <div>
+                        <span className="text-xs font-mono uppercase text-cyber-accent">Schicht 2</span>
+                        <br />Setzt Linien zu Formen (Kreise, Bögen) zusammen.
+                      </div>
+                      <div>
+                        <span className="text-xs font-mono uppercase text-cyber-accent">Schicht 3</span>
+                        <br />Erkennt komplette Ziffern-Strukturen.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* --- CARD 4: MATHEMATIK --- */}
+                <div className="bg-cyber-card/40 border border-cyber-border/50 rounded-xl p-6 backdrop-blur-sm hover:border-cyber-accent/50 transition-colors">
+                  <h3 className="text-lg text-cyber-accent font-bold mb-3 flex items-center gap-2">
+                    <span className="text-xl">📐</span> Die Mathematik (13.002 Parameter)
+                  </h3>
+                  <ul className="space-y-3 text-sm text-gray-400">
+                    <li className="flex gap-2">
+                      <span className="text-cyber-accent">●</span>
+                      <span>
+                        <strong className="text-gray-200">Gewichte (Weights):</strong> Bestimmen die Wichtigkeit einer Verbindung. <span className="text-green-400">Positiv (Grün)</span> bestärkt, <span className="text-red-400">Negativ (Rot)</span> hemmt.
+                      </span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="text-cyber-accent">●</span>
+                      <span>
+                        <strong className="text-gray-200">Bias:</strong> Eine Art "Reizschwelle". Wann feuert das Neuron? Wird am Ende subtrahiert.
+                      </span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="text-cyber-accent">●</span>
+                      <span>
+                        <strong className="text-gray-200">Sigmoid:</strong> <span className="italic font-serif">σ(x)</span> "Quetscht" jede Summe in den Bereich 0 bis 1.
+                      </span>
+                    </li>
+                  </ul>
+                </div>
               </div>
               <PerceptronVisualizer />
 
