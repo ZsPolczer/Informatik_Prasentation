@@ -7,14 +7,14 @@ interface NetworkDiagramProps {
 
 export const NetworkDiagram: React.FC<NetworkDiagramProps> = ({ inputActive, prediction }) => {
     // --- LAYOUT CONFIG ---
-    const width = 300;
-    const height = 400;
+    const width = 600;
+    const height = 200;
 
     // Layer positions (x-coordinates)
-    const xInput = 50;
-    const xHidden1 = 120;
-    const xHidden2 = 190;
-    const xOutput = 260;
+    const xInput = 80;
+    const xHidden1 = 220;
+    const xHidden2 = 360;
+    const xOutput = 500;
 
     // Node Configurations
     const inputNodes = 8;
