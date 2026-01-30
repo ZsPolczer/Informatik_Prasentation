@@ -1,86 +1,109 @@
 <!DOCTYPE html>
 <html lang="de">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI Architecture Lab</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-      body {
-        background-color: #050505; /* Darker start */
-        font-family: 'Roboto', sans-serif;
-        overflow-x: hidden;
-      }
-      .font-mono {
-        font-family: 'JetBrains Mono', monospace;
-      }
-      /* Custom Scrollbar for Cyber feel */
-      ::-webkit-scrollbar {
-        width: 8px;
-      }
-      ::-webkit-scrollbar-track {
-        background: #0d1117;
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #30363d;
-        border-radius: 4px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #00f2ff;
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Architecture Lab</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=JetBrains+Mono:wght@400;700&display=swap"
+    rel="stylesheet">
+  <style>
+    body {
+      background-color: #050505;
+      /* Darker start */
+      font-family: 'Roboto', sans-serif;
+      overflow-x: hidden;
+    }
+
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Custom Scrollbar for Cyber feel */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #0d1117;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #30363d;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #00f2ff;
+    }
+
+    /* Animated Background Grid */
+    .bg-grid-anim {
+      background-size: 50px 50px;
+      background-image:
+        linear-gradient(to right, rgba(0, 242, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 242, 255, 0.05) 1px, transparent 1px);
+      animation: moveGrid 15s linear infinite;
+    }
+
+    @keyframes moveGrid {
+      0% {
+        background-position: 0 0;
       }
 
-      /* Animated Background Grid */
-      .bg-grid-anim {
-        background-size: 50px 50px;
-        background-image: 
-          linear-gradient(to right, rgba(0, 242, 255, 0.05) 1px, transparent 1px),
-          linear-gradient(to bottom, rgba(0, 242, 255, 0.05) 1px, transparent 1px);
-        animation: moveGrid 15s linear infinite;
+      100% {
+        background-position: 50px 50px;
+      }
+    }
+
+    /* Breathing Glow Animation */
+    @keyframes pulse-glow {
+
+      0%,
+      100% {
+        opacity: 0.2;
+        transform: scale(1) translateX(-50%);
       }
 
-      @keyframes moveGrid {
-        0% { background-position: 0 0; }
-        100% { background-position: 50px 50px; }
+      50% {
+        opacity: 0.4;
+        transform: scale(1.2) translateX(-50%);
       }
+    }
 
-      /* Breathing Glow Animation */
-      @keyframes pulse-glow {
-        0%, 100% { opacity: 0.2; transform: scale(1) translateX(-50%); }
-        50% { opacity: 0.4; transform: scale(1.2) translateX(-50%); }
-      }
-      
-      .animate-pulse-slow {
-        animation: pulse-glow 8s ease-in-out infinite;
-      }
-    </style>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              cyber: {
-                bg: '#0d1117',
-                card: '#161b22',
-                accent: '#00f2ff',
-                text: '#c9d1d9',
-                border: '#30363d',
-                dark: '#050505'
-              }
-            },
-            animation: {
-              'fade-in': 'fadeIn 0.5s ease-out forwards',
-            },
-            keyframes: {
-              fadeIn: {
-                '0%': { opacity: '0', transform: 'translateY(10px)' },
-                '100%': { opacity: '1', transform: 'translateY(0)' },
-              }
+    .animate-pulse-slow {
+      animation: pulse-glow 8s ease-in-out infinite;
+    }
+  </style>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cyber: {
+              bg: '#0d1117',
+              card: '#161b22',
+              accent: '#00f2ff',
+              text: '#c9d1d9',
+              border: '#30363d',
+              dark: '#050505'
+            }
+          },
+          animation: {
+            'fade-in': 'fadeIn 0.5s ease-out forwards',
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0', transform: 'translateY(10px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
             }
           }
         }
       }
-    </script>
+    }
+  </script>
   <script type="importmap">
 {
   "imports": {
@@ -90,10 +113,12 @@
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
+  <link rel="stylesheet" href="/index.css">
 </head>
-  <body class="bg-cyber-dark text-cyber-text antialiased">
-    <div id="root"></div>
+
+<body class="bg-cyber-dark text-cyber-text antialiased">
+  <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
 </body>
+
 </html>

@@ -70,8 +70,8 @@ const App: React.FC = () => {
               key={item.id}
               onClick={() => setActiveModule(item.id as ModuleType)}
               className={`flex-1 min-w-[140px] px-4 py-3 rounded-lg text-sm font-bold uppercase tracking-wide transition-all duration-300 border ${activeModule === item.id
-                  ? 'bg-cyber-accent/10 border-cyber-accent text-cyber-accent shadow-[0_0_15px_rgba(0,242,255,0.3)]'
-                  : 'bg-transparent border-transparent text-gray-500 hover:text-white hover:bg-white/5'
+                ? 'bg-cyber-accent/10 border-cyber-accent text-cyber-accent shadow-[0_0_15px_rgba(0,242,255,0.3)]'
+                : 'bg-transparent border-transparent text-gray-500 hover:text-white hover:bg-white/5'
                 }`}
             >
               {item.label}
@@ -113,6 +113,49 @@ const App: React.FC = () => {
               <div className="mb-6">
                 <h2 className="text-2xl text-white font-bold mb-2">Machine Learning (Perzeptron)</h2>
                 <p className="text-gray-400">Ein Blick in die einfachste Form eines neuronalen Netzes: Das Perzeptron. Zeichne eine Zahl!</p>
+              </div>
+              <div className="bg-cyber-card/30 border border-cyber-border/50 rounded-xl p-6 mb-8 backdrop-blur-sm">
+                <h3 className="text-lg text-cyber-accent font-bold mb-4 flex items-center gap-2">
+                  <span className="text-xl">🧠</span> Wie funktioniert das Gehirn?
+                </h3>
+                <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-300">
+                  <li className="flex gap-3">
+                    <span className="text-cyber-accent mt-1">●</span>
+                    <span>
+                      <strong className="text-white">Inspiriert vom Gehirn:</strong> Neuronen sind mit Werten (Aktivierung 0.0 - 1.0) verbunden.
+                    </span>
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="text-cyber-accent mt-1">●</span>
+                    <span>
+                      <strong className="text-white">Sigmoid-Funktion:</strong> "Quetscht" alle Werte in einen Bereich zwischen 0 und 1.
+                    </span>
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="text-cyber-accent mt-1">●</span>
+                    <span>
+                      <strong className="text-white">Gewichte & Bias:</strong> Etwa <span className="text-cyber-accent font-mono">13.002</span> Stellschrauben beeinflussen das Ergebnis (Rot = Negativ, Grün = Positiv).
+                    </span>
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="text-cyber-accent mt-1">●</span>
+                    <span>
+                      <strong className="text-white">Schichten-Architektur:</strong> Erste Schichten erkennen Kanten, tiefere Schichten erkennen Formen und Ziffern.
+                    </span>
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="text-cyber-accent mt-1">●</span>
+                    <span>
+                      <strong className="text-white">Mustererkennung:</strong> Jedes Neuron steht für ein abstraktes Teil, wie eine Linie.
+                    </span>
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="text-cyber-accent mt-1">●</span>
+                    <span>
+                      <strong className="text-white">Entscheidung:</strong> Das "hellste" der letzten 10 Neuronen bestimmt die erkannte Zahl (0-9).
+                    </span>
+                  </li>
+                </ul>
               </div>
               <PerceptronVisualizer />
 
