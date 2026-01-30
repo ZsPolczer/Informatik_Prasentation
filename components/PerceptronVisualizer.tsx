@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { NetworkDiagram } from './NetworkDiagram';
 
 const TOTAL_PIXELS = 100; // 10x10 grid
 
@@ -128,10 +129,11 @@ export const PerceptronVisualizer: React.FC = () => {
                     </p>
                 </header>
 
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-12 items-start">
+                {/* Update the grid to be 3 columns on XL screens */}
+                <div className="grid grid-cols-1 xl:grid-cols-[1fr_auto_1fr] gap-8 items-start justify-items-center">
 
                     {/* LEFT: INPUT */}
-                    <div className="flex flex-col items-center space-y-6">
+                    <div className="flex flex-col items-center space-y-6 w-full max-w-[320px]">
                         <div className="w-full flex justify-between items-center mb-2">
                             <span className="text-xs font-mono text-cyber-accent uppercase tracking-widest">Input: Zeichnung</span>
                             <button
@@ -186,8 +188,16 @@ export const PerceptronVisualizer: React.FC = () => {
                         </div>
                     </div>
 
+                    {/* CENTER: NETWORK DIAGRAM (Only visible on large screens or stacked) */}
+                    <div className="hidden xl:flex flex-col items-center justify-center pt-8">
+                        <NetworkDiagram inputActive={inputGrid.some(v => v === 1)} prediction={prediction} />
+                        <p className="text-[10px] text-gray-500 font-mono mt-4 text-center max-w-[200px]">
+                            Visuelle Simulation der Schichten. In echt passieren hier 13.002 Berechnungen.
+                        </p>
+                    </div>
+
                     {/* RIGHT: WEIGHTS */}
-                    <div className="flex flex-col items-center space-y-6">
+                    <div className="flex flex-col items-center space-y-6 w-full max-w-[320px]">
                         <div className="w-full flex justify-between items-center mb-2">
                             <span className="text-xs font-mono text-cyber-accent uppercase tracking-widest">Brain: Gewichte für "{currentlyViewing}"</span>
                             <div className="flex gap-2">
