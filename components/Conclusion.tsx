@@ -4,6 +4,15 @@ const Conclusion: React.FC = () => {
     const [lakeMichiganFilledPercentage, setLakeMichiganFilledPercentage] = useState(0);
     const [takeoffType, setTakeoffType] = useState<'slow' | 'fast'>('slow');
     const [useLogScale, setUseLogScale] = useState(true);
+    const [zoomLevel, setZoomLevel] = useState(1); // 1, 5, 20
+
+    const toggleZoom = () => {
+        setZoomLevel(prev => {
+            if (prev === 1) return 5;
+            if (prev === 5) return 20;
+            return 1;
+        });
+    };
 
     // Animation for the Lake Michigan effect
     useEffect(() => {
@@ -14,12 +23,12 @@ const Conclusion: React.FC = () => {
     }, []);
 
     const steps = [
-        { name: 'Ameise', linearHeight: '0.1%', logHeight: '15%', color: 'bg-gray-700', label: 'Insekten-Intelligenz' },
-        { name: 'Huhn', linearHeight: '1%', logHeight: '30%', color: 'bg-gray-600', label: 'Basis-Bewusstsein' },
-        { name: 'Schimpanse', linearHeight: '10%', logHeight: '50%', color: 'bg-blue-900', label: 'Komplexe Problemlösung' },
-        { name: 'Mensch', linearHeight: '20%', logHeight: '65%', color: 'bg-cyber-accent', label: 'Top-Spezies (Aktuell)', active: true },
-        { name: 'AGI', linearHeight: '60%', logHeight: '85%', color: 'bg-purple-600', label: 'Allgemeine Intelligenz', pulse: true },
-        { name: 'ASI', linearHeight: '100%', logHeight: '100%', color: 'bg-red-600', label: 'Superintelligenz', pulse: true },
+        { name: 'Ameise', linearHeight: 0.1, logHeight: 15, color: 'bg-gray-700', label: 'Insekten-Intelligenz' },
+        { name: 'Huhn', linearHeight: 1, logHeight: 30, color: 'bg-gray-600', label: 'Basis-Bewusstsein' },
+        { name: 'Schimpanse', linearHeight: 10, logHeight: 50, color: 'bg-blue-900', label: 'Komplexe Problemlösung' },
+        { name: 'Mensch', linearHeight: 20, logHeight: 65, color: 'bg-cyber-accent', label: 'Top-Spezies (Aktuell)', active: true },
+        { name: 'AGI', linearHeight: 60, logHeight: 85, color: 'bg-purple-600', label: 'Allgemeine Intelligenz', pulse: true },
+        { name: 'ASI', linearHeight: 100, logHeight: 100, color: 'bg-red-600', label: 'Superintelligenz', pulse: true },
     ];
 
     return (
@@ -41,7 +50,14 @@ const Conclusion: React.FC = () => {
                         <span className="text-2xl">🪜</span> Die Treppe der Intelligenz
                     </h3>
 
-                    <div className="flex bg-black/40 p-1 rounded-lg border border-cyber-border/50 self-start">
+                    <div className="flex gap-2 bg-black/40 p-1 rounded-lg border border-cyber-border/50 self-start">
+                        <button
+                            onClick={toggleZoom}
+                            className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded transition-all bg-gray-800 text-gray-300 hover:text-white hover:bg-gray-700"
+                        >
+                            Zoom: {zoomLevel}x
+                        </button>
+                        <div className="w-[1px] h-4 bg-gray-700 self-center mx-1"></div>
                         <button
                             onClick={() => setUseLogScale(true)}
                             className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded transition-all ${useLogScale ? 'bg-cyber-accent text-black' : 'text-gray-500 hover:text-white'}`}
@@ -59,25 +75,54 @@ const Conclusion: React.FC = () => {
 
                 <div className="relative h-[400px] flex items-end justify-between px-4">
                     {/* Steps */}
-                    {steps.map((step, idx) => (
-                        <div key={idx} className="flex flex-col items-center w-1/7 group relative">
-                            <div
-                                className={`w-16 ${step.color} rounded-t-lg transition-all duration-700 ease-out overflow-visible relative ${step.pulse ? 'animate-pulse' : ''} ${step.active ? 'ring-4 ring-cyber-accent/30 shadow-[0_0_20px_rgba(0,242,255,0.4)]' : ''}`}
-                                style={{ height: useLogScale ? step.logHeight : step.linearHeight }}
-                            >
-                                <div className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs font-mono text-gray-400 font-bold bg-black/50 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                                    {step.label}
-                                </div>
-                            </div>
-                            <span className={`mt-4 text-xs font-bold uppercase tracking-tighter ${step.active ? 'text-cyber-accent' : 'text-gray-500'}`}>
-                                {step.name}
-                            </span>
-                        </div>
-                    ))}
+                    {steps.map((step, idx) => {
+                        const rawHeight = useLogScale ? step.logHeight : step.linearHeight;
+                        const displayedHeight = Math.min(100, rawHeight * zoomLevel);
 
-                    {/* Connectors/Ratio Lines */}
-                    <div className="absolute left-[54%] bottom-[60%] w-[12%] border-t-2 border-dashed border-gray-500 opacity-50"></div>
-                    <div className="absolute right-[22%] bottom-[80%] w-[12%] border-t-2 border-dashed border-gray-500 opacity-50"></div>
+                        return (
+                            <div key={idx} className="flex flex-col items-center w-1/7 group relative">
+                                <div
+                                    className={`w-16 ${step.color} rounded-t-lg transition-all duration-700 ease-out overflow-visible relative ${step.pulse ? 'animate-pulse' : ''} ${step.active ? 'ring-4 ring-cyber-accent/30 shadow-[0_0_20px_rgba(0,242,255,0.4)]' : ''}`}
+                                    style={{
+                                        height: `${displayedHeight}%`,
+                                        minHeight: displayedHeight > 0 ? '4px' : '0px'
+                                    }}
+                                >
+                                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs font-mono text-gray-400 font-bold bg-black/50 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                                        {step.label}
+                                    </div>
+                                </div>
+                                <span className={`mt-4 text-xs font-bold uppercase tracking-tighter ${step.active ? 'text-cyber-accent' : 'text-gray-500'}`}>
+                                    {step.name}
+                                </span>
+                            </div>
+                        );
+                    })}
+
+                    {/* Dynamic Connectors/Ratio Lines */}
+                    {steps.slice(0, -1).map((step, idx) => {
+                        const currentRawHeight = useLogScale ? step.logHeight : step.linearHeight;
+                        const nextRawHeight = useLogScale ? steps[idx + 1].logHeight : steps[idx + 1].linearHeight;
+
+                        const currentHeight = Math.min(100, currentRawHeight * zoomLevel);
+                        const nextHeight = Math.min(100, nextRawHeight * zoomLevel);
+
+                        // Only show connector if it's within the visible range and there's a significant gap
+                        if (currentHeight >= 100) return null;
+
+                        return (
+                            <div
+                                key={`conn-${idx}`}
+                                className="absolute border-t-2 border-dashed border-gray-500/30 transition-all duration-700 ease-out pointer-events-none"
+                                style={{
+                                    left: `${(idx * 14) + 10}%`,
+                                    width: '8%',
+                                    bottom: `${currentHeight}%`,
+                                    opacity: currentHeight > 0 ? 1 : 0
+                                }}
+                            ></div>
+                        );
+                    })}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
