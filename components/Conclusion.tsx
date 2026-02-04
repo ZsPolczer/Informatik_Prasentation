@@ -29,8 +29,8 @@ const Conclusion: React.FC = () => {
         { name: 'Huhn', linearHeight: 1, logHeight: 30, color: 'bg-gray-600', label: 'Basis-Bewusstsein' },
         { name: 'Schimpanse', linearHeight: 10, logHeight: 50, color: 'bg-blue-900', label: 'Komplexe Problemlösung' },
         { name: 'Mensch', linearHeight: 20, logHeight: 65, color: 'bg-cyber-accent', label: 'Top-Spezies (Aktuell)', active: true },
-        { name: 'AGI', linearHeight: 60, logHeight: 85, color: 'bg-purple-600', label: 'Allgemeine Intelligenz', pulse: true },
-        { name: 'ASI', linearHeight: 100, logHeight: 100, color: 'bg-red-600', label: 'Superintelligenz', pulse: true },
+        { name: 'AGI', linearHeight: 500, logHeight: 85, color: 'bg-purple-600', label: 'Allgemeine Intelligenz', pulse: true },
+        { name: 'ASI', linearHeight: 2500, logHeight: 100, color: 'bg-red-600', label: 'Superintelligenz', pulse: true },
     ];
 
     return (
@@ -81,10 +81,6 @@ const Conclusion: React.FC = () => {
 
                 {/* Stricter container with overflow hidden to handle zoom clipping */}
                 <div className="relative h-[400px] w-full border-b border-gray-700 bg-black/20 rounded-t-lg overflow-hidden flex items-end justify-between px-4">
-                    {/* Grid Lines for reference */}
-                    <div className="absolute inset-x-0 bottom-[25%] border-t border-dashed border-gray-800/50 pointer-events-none"></div>
-                    <div className="absolute inset-x-0 bottom-[50%] border-t border-dashed border-gray-800/50 pointer-events-none"></div>
-                    <div className="absolute inset-x-0 bottom-[75%] border-t border-dashed border-gray-800/50 pointer-events-none"></div>
 
                     {steps.map((step, idx) => {
                         // Calculate base height (0-100)
