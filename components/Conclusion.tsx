@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 const Conclusion: React.FC = () => {
     const [lakeMichiganFilledPercentage, setLakeMichiganFilledPercentage] = useState(0);
     const [takeoffType, setTakeoffType] = useState<'slow' | 'fast'>('slow');
+    const [useLogScale, setUseLogScale] = useState(true);
 
     // Animation for the Lake Michigan effect
     useEffect(() => {
@@ -11,6 +12,15 @@ const Conclusion: React.FC = () => {
         }, 100);
         return () => clearInterval(interval);
     }, []);
+
+    const steps = [
+        { name: 'Ameise', linearHeight: '0.1%', logHeight: '15%', color: 'bg-gray-700', label: 'Insekten-Intelligenz' },
+        { name: 'Huhn', linearHeight: '1%', logHeight: '30%', color: 'bg-gray-600', label: 'Basis-Bewusstsein' },
+        { name: 'Schimpanse', linearHeight: '10%', logHeight: '50%', color: 'bg-blue-900', label: 'Komplexe Problemlösung' },
+        { name: 'Mensch', linearHeight: '20%', logHeight: '65%', color: 'bg-cyber-accent', label: 'Top-Spezies (Aktuell)', active: true },
+        { name: 'AGI', linearHeight: '60%', logHeight: '85%', color: 'bg-purple-600', label: 'Allgemeine Intelligenz', pulse: true },
+        { name: 'ASI', linearHeight: '100%', logHeight: '100%', color: 'bg-red-600', label: 'Superintelligenz', pulse: true },
+    ];
 
     return (
         <div className="space-y-12 animate-fade-in pb-20">
@@ -26,24 +36,34 @@ const Conclusion: React.FC = () => {
 
             {/* --- INTELLIGENCE STAIRCASE --- */}
             <section className="bg-cyber-card/30 border border-cyber-border/50 rounded-2xl p-8 backdrop-blur-md">
-                <h3 className="text-xl font-bold text-cyber-accent mb-8 flex items-center gap-2">
-                    <span className="text-2xl">🪜</span> Die Treppe der Intelligenz (Intelligence Staircase)
-                </h3>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                    <h3 className="text-xl font-bold text-cyber-accent flex items-center gap-2">
+                        <span className="text-2xl">🪜</span> Die Treppe der Intelligenz
+                    </h3>
+
+                    <div className="flex bg-black/40 p-1 rounded-lg border border-cyber-border/50 self-start">
+                        <button
+                            onClick={() => setUseLogScale(true)}
+                            className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded transition-all ${useLogScale ? 'bg-cyber-accent text-black' : 'text-gray-500 hover:text-white'}`}
+                        >
+                            Vergleichbar
+                        </button>
+                        <button
+                            onClick={() => setUseLogScale(false)}
+                            className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded transition-all ${!useLogScale ? 'bg-cyber-accent text-black' : 'text-gray-500 hover:text-white'}`}
+                        >
+                            Realität (Linear)
+                        </button>
+                    </div>
+                </div>
 
                 <div className="relative h-[400px] flex items-end justify-between px-4">
                     {/* Steps */}
-                    {[
-                        { name: 'Ameise', height: '10%', color: 'bg-gray-700', label: 'Insekten-Intelligenz' },
-                        { name: 'Huhn', height: '25%', color: 'bg-gray-600', label: 'Basis-Bewusstsein' },
-                        { name: 'Schimpanse', height: '45%', color: 'bg-blue-900', label: 'Komplexe Problemlösung' },
-                        { name: 'Mensch', height: '60%', color: 'bg-cyber-accent', label: 'Top-Spezies (Aktuell)', active: true },
-                        { name: 'AGI', height: '80%', color: 'bg-purple-600', label: 'Künstliche Allgemeine Intelligenz', pulse: true },
-                        { name: 'ASI', height: '100%', color: 'bg-red-600', label: 'Superintelligenz (Level: Gott)', pulse: true },
-                    ].map((step, idx) => (
+                    {steps.map((step, idx) => (
                         <div key={idx} className="flex flex-col items-center w-1/7 group relative">
                             <div
-                                className={`w-16 ${step.color} rounded-t-lg transition-all duration-500 overflow-visible relative ${step.pulse ? 'animate-pulse' : ''} ${step.active ? 'ring-4 ring-cyber-accent/30 shadow-[0_0_20px_rgba(0,242,255,0.4)]' : ''}`}
-                                style={{ height: step.height }}
+                                className={`w-16 ${step.color} rounded-t-lg transition-all duration-700 ease-out overflow-visible relative ${step.pulse ? 'animate-pulse' : ''} ${step.active ? 'ring-4 ring-cyber-accent/30 shadow-[0_0_20px_rgba(0,242,255,0.4)]' : ''}`}
+                                style={{ height: useLogScale ? step.logHeight : step.linearHeight }}
                             >
                                 <div className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs font-mono text-gray-400 font-bold bg-black/50 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
                                     {step.label}

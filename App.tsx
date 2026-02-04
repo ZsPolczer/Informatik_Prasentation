@@ -223,19 +223,6 @@ const App: React.FC = () => {
                 </div>
               </div>
               <PerceptronVisualizer />
-
-              {/* Placeholder for Next Features (Moved here as it belongs to ML context) */}
-              <section className="grid grid-cols-1 gap-6 opacity-60 grayscale hover:grayscale-0 transition-all duration-500 mt-8">
-                <div className="bg-cyber-card/40 border border-cyber-border/50 rounded-xl p-6 min-h-[200px] flex flex-col items-center justify-center border-dashed backdrop-blur-sm group hover:border-cyber-accent/50 transition-colors cursor-wait">
-                  <div className="w-12 h-12 rounded-lg bg-gray-800 mb-4 flex items-center justify-center text-2xl group-hover:text-cyber-accent transition-colors">👁️</div>
-                  <h3 className="text-xl font-bold text-gray-300 group-hover:text-white">Nummernerkennung (MNIST)</h3>
-                  <p className="text-sm text-gray-500 mt-2 text-center max-w-md">
-                    Dieses Modul erfordert eine Verbindung zum lokalen Python-Backend.
-                    <br />
-                    <span className="text-xs font-mono text-cyber-accent mt-1 block">WAITING FOR FLASK CONNECTION...</span>
-                  </p>
-                </div>
-              </section>
             </div>
           )}
 
