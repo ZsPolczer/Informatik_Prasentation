@@ -3,8 +3,9 @@ import { Glossary } from './components/Glossary';
 import { TemperatureDemo } from './components/TemperatureDemo';
 import { FightingAgents } from './components/FightingAgents';
 import { PerceptronVisualizer } from './components/PerceptronVisualizer';
+import Conclusion from './components/Conclusion';
 
-type ModuleType = 'intro' | 'temp' | 'perceptron' | 'agents';
+type ModuleType = 'intro' | 'temp' | 'perceptron' | 'agents' | 'conclusion';
 
 const App: React.FC = () => {
   const [activeModule, setActiveModule] = useState<ModuleType>('intro');
@@ -65,6 +66,7 @@ const App: React.FC = () => {
             { id: 'temp', label: 'Wie generiert KI Antworten' },
             { id: 'perceptron', label: 'Machine Learning' },
             { id: 'agents', label: 'Neurale Netze' },
+            { id: 'conclusion', label: 'Fazit & Ausblick' },
           ].map((item) => (
             <button
               key={item.id}
@@ -245,6 +247,10 @@ const App: React.FC = () => {
               </div>
               <FightingAgents />
             </div>
+          )}
+
+          {activeModule === 'conclusion' && (
+            <Conclusion />
           )}
         </div>
 
