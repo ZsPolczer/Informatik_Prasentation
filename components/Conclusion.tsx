@@ -10,6 +10,8 @@ const Conclusion: React.FC = () => {
         setZoomLevel(prev => {
             if (prev === 1) return 5;
             if (prev === 5) return 20;
+            if (prev === 20) return 0.1;
+            if (prev === 0.1) return 0.5;
             return 1;
         });
     };
