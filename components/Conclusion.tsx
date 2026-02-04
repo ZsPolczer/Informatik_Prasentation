@@ -50,77 +50,76 @@ const Conclusion: React.FC = () => {
                         <span className="text-2xl">🪜</span> Die Treppe der Intelligenz
                     </h3>
 
-                    <div className="flex gap-2 bg-black/40 p-1 rounded-lg border border-cyber-border/50 self-start">
-                        <button
-                            onClick={toggleZoom}
-                            className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded transition-all bg-gray-800 text-gray-300 hover:text-white hover:bg-gray-700"
-                        >
-                            Zoom: {zoomLevel}x
-                        </button>
-                        <div className="w-[1px] h-4 bg-gray-700 self-center mx-1"></div>
-                        <button
-                            onClick={() => setUseLogScale(true)}
-                            className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded transition-all ${useLogScale ? 'bg-cyber-accent text-black' : 'text-gray-500 hover:text-white'}`}
-                        >
-                            Vergleichbar
-                        </button>
-                        <button
-                            onClick={() => setUseLogScale(false)}
-                            className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded transition-all ${!useLogScale ? 'bg-cyber-accent text-black' : 'text-gray-500 hover:text-white'}`}
-                        >
-                            Realität (Linear)
-                        </button>
+                    <div className="flex flex-col gap-2 self-start md:self-auto">
+                        <div className="flex gap-2 bg-black/40 p-1 rounded-lg border border-cyber-border/50">
+                            <button
+                                onClick={() => setUseLogScale(true)}
+                                className={`flex-1 px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded transition-all ${useLogScale ? 'bg-cyber-accent text-black' : 'text-gray-500 hover:text-white'}`}
+                            >
+                                Vergleichbar ({zoomLevel}x)
+                            </button>
+                            <button
+                                onClick={() => setUseLogScale(false)}
+                                className={`flex-1 px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded transition-all ${!useLogScale ? 'bg-cyber-accent text-black' : 'text-gray-500 hover:text-white'}`}
+                            >
+                                Realität (Linear)
+                            </button>
+                        </div>
+
+                        {!useLogScale && (
+                            <button
+                                onClick={toggleZoom}
+                                className="w-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded transition-all bg-gray-800 text-gray-300 hover:text-white hover:bg-gray-700 border border-gray-600"
+                            >
+                                Zoom: {zoomLevel}x (Klick zum Ändern)
+                            </button>
+                        )}
                     </div>
                 </div>
 
-                <div className="relative h-[400px] flex items-end justify-between px-4">
-                    {/* Steps */}
+                {/* Stricter container with overflow hidden to handle zoom clipping */}
+                <div className="relative h-[400px] w-full border-b border-gray-700 bg-black/20 rounded-t-lg overflow-hidden flex items-end justify-between px-4">
+                    {/* Grid Lines for reference */}
+                    <div className="absolute inset-x-0 bottom-[25%] border-t border-dashed border-gray-800/50 pointer-events-none"></div>
+                    <div className="absolute inset-x-0 bottom-[50%] border-t border-dashed border-gray-800/50 pointer-events-none"></div>
+                    <div className="absolute inset-x-0 bottom-[75%] border-t border-dashed border-gray-800/50 pointer-events-none"></div>
+
                     {steps.map((step, idx) => {
-                        const rawHeight = useLogScale ? step.logHeight : step.linearHeight;
-                        const displayedHeight = Math.min(100, rawHeight * zoomLevel);
+                        // Calculate base height (0-100)
+                        let heightVal = useLogScale ? step.logHeight : step.linearHeight;
+
+                        // Apply Zoom Level only in Linear Mode
+                        if (!useLogScale) {
+                            heightVal = heightVal * zoomLevel;
+                        }
+
+                        // Cap at 100% for Log mode, but allow overflow for Linear zoom effect if desired 
+                        // (but we clipped parent, so it just looks truncated which is perfect)
 
                         return (
-                            <div key={idx} className="flex flex-col items-center w-1/7 group relative">
+                            <div key={idx} className="flex flex-col items-center justify-end w-1/6 h-full group relative z-10 px-1">
                                 <div
-                                    className={`w-16 ${step.color} rounded-t-lg transition-all duration-700 ease-out overflow-visible relative ${step.pulse ? 'animate-pulse' : ''} ${step.active ? 'ring-4 ring-cyber-accent/30 shadow-[0_0_20px_rgba(0,242,255,0.4)]' : ''}`}
+                                    className={`w-full max-w-[60px] ${step.color} rounded-t-lg transition-all duration-500 relative flex flex-col justify-end
+                                        ${step.pulse ? 'animate-pulse' : ''} 
+                                        ${step.active ? 'ring-2 ring-cyber-accent shadow-[0_0_15px_rgba(0,242,255,0.3)]' : 'opacity-80 hover:opacity-100'}`}
                                     style={{
-                                        height: `${displayedHeight}%`,
-                                        minHeight: displayedHeight > 0 ? '4px' : '0px'
+                                        height: `${heightVal}%`,
+                                        minHeight: '4px' // Ensure visible sliver even for Ant
                                     }}
                                 >
-                                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs font-mono text-gray-400 font-bold bg-black/50 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                                        {step.label}
+                                    {/* Label on top of bar (or hovering if huge) */}
+                                    <div className="absolute -top-12 left-1/2 -translate-x-1/2 flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 p-2 rounded border border-cyber-border z-20 pointer-events-none">
+                                        <span className="text-white font-bold whitespace-nowrap text-xs">{step.name}</span>
+                                        <span className="text-cyber-accent text-[10px] whitespace-nowrap">{step.label}</span>
                                     </div>
                                 </div>
-                                <span className={`mt-4 text-xs font-bold uppercase tracking-tighter ${step.active ? 'text-cyber-accent' : 'text-gray-500'}`}>
+
+                                {/* Static Label below */}
+                                <span className={`mt-3 text-[10px] md:text-xs font-bold uppercase tracking-tighter text-center
+                                    ${step.active ? 'text-cyber-accent' : 'text-gray-500'}`}>
                                     {step.name}
                                 </span>
                             </div>
-                        );
-                    })}
-
-                    {/* Dynamic Connectors/Ratio Lines */}
-                    {steps.slice(0, -1).map((step, idx) => {
-                        const currentRawHeight = useLogScale ? step.logHeight : step.linearHeight;
-                        const nextRawHeight = useLogScale ? steps[idx + 1].logHeight : steps[idx + 1].linearHeight;
-
-                        const currentHeight = Math.min(100, currentRawHeight * zoomLevel);
-                        const nextHeight = Math.min(100, nextRawHeight * zoomLevel);
-
-                        // Only show connector if it's within the visible range and there's a significant gap
-                        if (currentHeight >= 100) return null;
-
-                        return (
-                            <div
-                                key={`conn-${idx}`}
-                                className="absolute border-t-2 border-dashed border-gray-500/30 transition-all duration-700 ease-out pointer-events-none"
-                                style={{
-                                    left: `${(idx * 14) + 10}%`,
-                                    width: '8%',
-                                    bottom: `${currentHeight}%`,
-                                    opacity: currentHeight > 0 ? 1 : 0
-                                }}
-                            ></div>
                         );
                     })}
                 </div>
@@ -201,13 +200,13 @@ const Conclusion: React.FC = () => {
                         <div className="absolute left-1/2 bottom-[-20px] -translate-x-1/2 text-[10px] text-gray-500 font-mono">Heute</div>
 
                         {/* Growth Curve */}
-                        <svg className="absolute inset-0 w-full h-full overflow-visible" preserveAspectRatio="none">
+                        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 200" preserveAspectRatio="none">
                             {/* Baseline development */}
                             <path
                                 d="M 0 192 Q 100 190, 200 180"
                                 fill="none"
                                 stroke="#4b5563"
-                                strokeWidth="2"
+                                strokeWidth="3"
                             />
 
                             {/* Slow Takeoff */}
@@ -217,7 +216,7 @@ const Conclusion: React.FC = () => {
                                     d="M 200 180 Q 250 150, 400 20"
                                     fill="none"
                                     stroke="#00f2ff"
-                                    strokeWidth="3"
+                                    strokeWidth="4"
                                     strokeDasharray="5,5"
                                 />
                             )}
@@ -229,7 +228,7 @@ const Conclusion: React.FC = () => {
                                     d="M 200 180 L 220 170 L 230 10"
                                     fill="none"
                                     stroke="#ef4444"
-                                    strokeWidth="4"
+                                    strokeWidth="5"
                                 />
                             )}
                         </svg>
