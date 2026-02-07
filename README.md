@@ -18,3 +18,5 @@ View your app in AI Studio: https://ai.studio/apps/drive/1EwamNui-gIzkkkjN-fcL9z
 2. Set the `OPENROUTER_API_KEY` in [.env.local](.env.local) to your OpenRouter API key
 3. Run the app:
    `npm run dev`
+
+.
