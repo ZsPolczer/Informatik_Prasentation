@@ -3,6 +3,7 @@ import { Glossary } from './components/Glossary';
 import { TemperatureDemo } from './components/TemperatureDemo';
 import { FightingAgents } from './components/FightingAgents';
 import { PerceptronVisualizer } from './components/PerceptronVisualizer';
+import { BiasVisualizer } from './components/BiasVisualizer';
 import Conclusion from './components/Conclusion';
 
 export type ModuleType = 'intro' | 'temp' | 'perceptron' | 'agents' | 'conclusion';
@@ -408,6 +409,11 @@ const App: React.FC = () => {
                     </p>
                   </div>
                 </div>
+              </div>
+
+              {/* --- BIAS VISUALIZER (NEW) --- */}
+              <div className="mb-12">
+                <BiasVisualizer />
               </div>
             </div>
           )}
