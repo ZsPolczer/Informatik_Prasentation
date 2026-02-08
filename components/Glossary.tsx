@@ -39,7 +39,7 @@ export const Glossary: React.FC = () => {
             title="Temperature (τ)"
             content={
               <>
-                Ein Parameter, der die <span className="text-cyber-accent font-bold">Wahrscheinlichkeitsverteilung</span> beeinflusst. Hohe Werte erhöhen die Entropie (Chaos), niedrige Werte erzwingen Determinismus.
+                Ein Parameter, der die <span className="text-cyber-accent font-bold">Wahrscheinlichkeitsverteilung</span> beeinflusst. Hohe Werte erhöhen die Kreativität (Zufall), niedrige Werte erzwingen Logik.
               </>
             }
           />
@@ -47,15 +47,39 @@ export const Glossary: React.FC = () => {
             title="Neural Weights"
             content={
               <>
-                Die <span className="text-cyber-accent font-bold">Stärke der Verbindung</span> zwischen zwei Neuronen. Das "Wissen" der KI ist in diesen Zahlen als Matrix gespeichert.
+                Die <span className="text-cyber-accent font-bold">Stärke der Verbindung</span> zwischen Neuronen. Das Wissen der KI ist in diesen Zahlen als Matrix gespeichert.
               </>
             }
           />
           <GlossaryItem
-            title="Trainingszyklus"
+            title="Bias (Reizschwelle)"
             content={
               <>
-                Ein kompletter <span className="text-cyber-accent font-bold">Trainingsdurchlauf</span> durch den gesamten Datensatz (auch "Epoche" genannt). Modelle brauchen oft Tausende davon.
+                Ein Wert, der bestimmt, ab wann ein <span className="text-cyber-accent font-bold">Neuron feuert</span>. Er verschiebt die Aktivierungsschwelle unabhängig von den Inputs.
+              </>
+            }
+          />
+          <GlossaryItem
+            title="Aktivierungsfunktion"
+            content={
+              <>
+                Mathematik (wie <span className="text-cyber-accent font-bold">Sigmoid</span> oder <span className="text-cyber-accent font-bold">Tanh</span>), die den Output eines Neurons "quetscht" und komplexe Logik ermöglicht.
+              </>
+            }
+          />
+          <GlossaryItem
+            title="Hidden Layers"
+            content={
+              <>
+                Die <span className="text-cyber-accent font-bold">versteckten Schichten</span> zwischen Input und Output. Hier findet die eigentliche Merkmalsextraktion und Abstraktion statt.
+              </>
+            }
+          />
+          <GlossaryItem
+            title="Deep Learning"
+            content={
+              <>
+                Ein Teilgebiet von Machine Learning, das <span className="text-cyber-accent font-bold">mehrlagige neuronale Netze</span> verwendet, um extrem komplexe Muster zu verstehen.
               </>
             }
           />
@@ -63,7 +87,79 @@ export const Glossary: React.FC = () => {
             title="Backpropagation"
             content={
               <>
-                Der Lernalgorithmus: Der <span className="text-cyber-accent font-bold">Fehler</span> wird rückwärts durch das Netz geleitet, um die Gewichte anzupassen.
+                Der Lernalgorithmus: Der <span className="text-cyber-accent font-bold">Fehler</span> wird rückwärts durch das Netz geleitet, um die Gewichte mathematisch korrekt anzupassen.
+              </>
+            }
+          />
+          <GlossaryItem
+            title="Epoche (Trainingszyklus)"
+            content={
+              <>
+                Ein kompletter <span className="text-cyber-accent font-bold">Trainingsdurchlauf</span> durch den gesamten Datensatz. Modelle benötigen oft tausende Epochen zum Lernen.
+              </>
+            }
+          />
+          <GlossaryItem
+            title="Parameter"
+            content={
+              <>
+                Die Summe aller <span className="text-cyber-accent font-bold">Gewichte und Biases</span>. Sie definieren das gesamte Gehirn des Modells (z.B. GPT-4 hat Billionen davon).
+              </>
+            }
+          />
+          <GlossaryItem
+            title="Perzeptron"
+            content={
+              <>
+                Der <span className="text-cyber-accent font-bold">Urvater</span> der neuronalen Netze. Eine simple Struktur, die nur eine Entscheidungsebene besitzt.
+              </>
+            }
+          />
+          <GlossaryItem
+            title="Vektoren & Matrizen"
+            content={
+              <>
+                Die <span className="text-cyber-accent font-bold">Sprache der KI</span>. Alle Informationen (Bilder, Text) werden in Zahlenlisten umgewandelt und mit Matrizen berechnet.
+              </>
+            }
+          />
+          <GlossaryItem
+            title="Mutation"
+            content={
+              <>
+                Ein Prozess in <span className="text-cyber-accent font-bold">evolutionären Algorithmen</span>: Zufällige kleine Änderungen am "Erbgut" (Gewichten), um neue Strategien zu finden.
+              </>
+            }
+          />
+          <GlossaryItem
+            title="AGI (General Intelligence)"
+            content={
+              <>
+                Künstliche <span className="text-cyber-accent font-bold">allgemeine Intelligenz</span>. Eine KI, die jede intellektuelle Aufgabe so gut wie ein Mensch bewältigen kann.
+              </>
+            }
+          />
+          <GlossaryItem
+            title="ASI (Superintelligence)"
+            content={
+              <>
+                Künstliche <span className="text-cyber-accent font-bold">Superintelligenz</span>. Eine Intelligenz, die die menschlichen Fähigkeiten in absolut jedem Bereich milliardenfach übertrifft.
+              </>
+            }
+          />
+          <GlossaryItem
+            title="Singularität"
+            content={
+              <>
+                Der hypothetische Zeitpunkt, an dem die KI sich <span className="text-cyber-accent font-bold">selbst verbessert</span> und der Fortschritt für Menschen unvorhersehbar schnell wird.
+              </>
+            }
+          />
+          <GlossaryItem
+            title="Exponentielles Wachstum"
+            content={
+              <>
+                Eine Entwicklung, die sich in <span className="text-cyber-accent font-bold">festen Zeitabständen verdoppelt</span>. Das menschliche Gehirn unterschätzt diese Geschwindigkeit oft massiv.
               </>
             }
           />
