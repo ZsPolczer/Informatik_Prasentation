@@ -369,6 +369,42 @@ const App: React.FC = () => {
                   </ul>
                 </div>
               </div>
+
+              {/* --- NEW SIMPLIFIED MATH BOX --- */}
+              <div className="mb-12 bg-gradient-to-r from-cyber-accent/10 to-blue-600/10 border border-cyber-accent/30 rounded-2xl p-8 backdrop-blur-md relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                  <span className="text-8xl">🍳</span>
+                </div>
+
+                <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
+                  <span className="w-8 h-8 rounded-lg bg-cyber-accent text-black flex items-center justify-center font-mono">!</span>
+                  Mathematik einfach erklärt: Das "KI-Rezept"
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
+                  <div className="space-y-2">
+                    <div className="text-cyber-accent font-bold uppercase text-xs tracking-widest">Schritt 1: Die Zutaten</div>
+                    <p className="text-sm text-gray-300 leading-relaxed">
+                      Jeder Pixel (Input) ist eine Zutat. Die <strong className="text-white">Gewichte</strong> bestimmen, wie viel wir davon nehmen. Salz ist wichtig (positives Gewicht), Dreck wollen wir nicht (negatives Gewicht).
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="text-cyber-accent font-bold uppercase text-xs tracking-widest">Schritt 2: Der Koch</div>
+                    <p className="text-sm text-gray-300 leading-relaxed">
+                      Der Koch (Neuron) wirft alles in einen Topf. Der <strong className="text-white">Bias</strong> ist sein persönlicher Geschmack: Nur wenn die Suppe würzig genug ist, reicht er sie weiter.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="text-cyber-accent font-bold uppercase text-xs tracking-widest">Schritt 3: Der Filter (Sigmoid)</div>
+                    <p className="text-sm text-gray-300 leading-relaxed">
+                      Die <strong className="text-white">Sigmoid-Funktion</strong> sorgt dafür, dass die Antwort sauber bleibt. Sie "quetscht" das Ergebnis auf eine Skala von <span className="text-white">0% (Ungenießbar)</span> bis <span className="text-white">100% (Perfekt!)</span>.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               <PerceptronVisualizer />
             </div>
           )}
