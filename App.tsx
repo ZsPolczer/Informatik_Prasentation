@@ -363,7 +363,7 @@ const App: React.FC = () => {
                     <li className="flex gap-2">
                       <span className="text-cyber-accent">●</span>
                       <span>
-                        <strong className="text-gray-200">Sigmoid:</strong> <span className="italic font-serif">σ(x)</span> "Quetscht" jede Summe in den Bereich 0 bis 1.
+                        <strong className="text-gray-200">Sigmoid:</strong> Die Aktivierungsfunktion <span className="italic font-serif">σ(x)</span> wandelt beliebige Summen in Werte zwischen 0 und 1 um. Dies simuliert das "Feuern" eines biologischen Neurons (aktiv vs. inaktiv).
                       </span>
                     </li>
                   </ul>
