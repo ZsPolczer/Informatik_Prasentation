@@ -5,7 +5,7 @@ import { FightingAgents } from './components/FightingAgents';
 import { PerceptronVisualizer } from './components/PerceptronVisualizer';
 import Conclusion from './components/Conclusion';
 
-type ModuleType = 'intro' | 'temp' | 'perceptron' | 'agents' | 'conclusion';
+export type ModuleType = 'intro' | 'temp' | 'perceptron' | 'agents' | 'conclusion';
 
 const App: React.FC = () => {
   const [activeModule, setActiveModule] = useState<ModuleType>('intro');
@@ -430,7 +430,7 @@ const App: React.FC = () => {
       </main>
 
       {/* Sidebar Glossary */}
-      <Glossary />
+      <Glossary activeModule={activeModule} />
 
     </div>
   );
