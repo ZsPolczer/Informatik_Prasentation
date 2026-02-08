@@ -263,6 +263,11 @@ const App: React.FC = () => {
                 <h2 className="text-2xl text-white font-bold mb-2">Machine Learning (Perzeptron)</h2>
                 <p className="text-gray-400">Ein Blick in die einfachste Form eines neuronalen Netzes: Das Perzeptron. Zeichne eine Zahl!</p>
               </div>
+
+              <div className="mb-12">
+                <PerceptronVisualizer />
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
                 {/* --- CARD 1: KONZEPT --- */}
                 <div className="bg-cyber-card/40 border border-cyber-border/50 rounded-xl p-6 backdrop-blur-sm hover:border-cyber-accent/50 transition-colors">
@@ -404,8 +409,6 @@ const App: React.FC = () => {
                   </div>
                 </div>
               </div>
-
-              <PerceptronVisualizer />
             </div>
           )}
 
