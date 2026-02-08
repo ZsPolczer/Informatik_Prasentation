@@ -105,15 +105,14 @@ const App: React.FC = () => {
               <div>
                 <div className="mb-6">
                   <h2 className="text-2xl text-white font-bold mb-2">Wie generiert KI Antworten?</h2>
-                  <p className="text-gray-400">Verstehe den Einfluss von "Temperatur" auf die Kreativität und Zufälligkeit von KI-Modellen.</p>
+                  <p className="text-gray-400">Verstehe die Architektur und den Einfluss von "Temperatur" auf die Kreativität von KI-Modellen.</p>
                 </div>
-                <TemperatureDemo />
               </div>
 
               {/* --- DEEP DIVE SECTION --- */}
-              <div className="animate-fade-in pb-12">
+              <div className="animate-fade-in">
                 <h3 className="text-xl font-bold text-cyber-accent mb-6 flex items-center gap-2 border-b border-cyber-border/30 pb-2">
-                  <span className="text-2xl">⚡</span> Deep Dive: Die Technik hinter GPT
+                  <span className="text-2xl">⚡</span> Theorie: Die Technik hinter GPT
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -246,6 +245,14 @@ const App: React.FC = () => {
                   </div>
 
                 </div>
+              </div>
+
+              {/* --- INTERACTIVE DEMO --- */}
+              <div className="pb-12">
+                <h3 className="text-xl font-bold text-cyber-accent mb-6 flex items-center gap-2 border-b border-cyber-border/30 pb-2">
+                  <span className="text-2xl">🎮</span> Live-Simulation: Temperatur in Aktion
+                </h3>
+                <TemperatureDemo />
               </div>
             </div>
           )}
