@@ -101,12 +101,152 @@ const App: React.FC = () => {
           )}
 
           {activeModule === 'temp' && (
-            <div>
-              <div className="mb-6">
-                <h2 className="text-2xl text-white font-bold mb-2">Wie generiert KI Antworten?</h2>
-                <p className="text-gray-400">Verstehe den Einfluss von "Temperatur" auf die Kreativität und Zufälligkeit von KI-Modellen.</p>
+            <div className="space-y-12">
+              <div>
+                <div className="mb-6">
+                  <h2 className="text-2xl text-white font-bold mb-2">Wie generiert KI Antworten?</h2>
+                  <p className="text-gray-400">Verstehe den Einfluss von "Temperatur" auf die Kreativität und Zufälligkeit von KI-Modellen.</p>
+                </div>
+                <TemperatureDemo />
               </div>
-              <TemperatureDemo />
+
+              {/* --- DEEP DIVE SECTION --- */}
+              <div className="animate-fade-in pb-12">
+                <h3 className="text-xl font-bold text-cyber-accent mb-6 flex items-center gap-2 border-b border-cyber-border/30 pb-2">
+                  <span className="text-2xl">⚡</span> Deep Dive: Die Technik hinter GPT
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                  {/* CARD 1: GRUNDPRINZIP */}
+                  <div className="bg-cyber-card/40 border border-cyber-border/50 rounded-xl p-6 hover:bg-cyber-card/60 transition-colors">
+                    <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                      <span className="text-cyber-accent">01.</span> Grundprinzip & Daten
+                    </h4>
+                    <ul className="space-y-4 text-sm text-gray-400 leading-relaxed">
+                      <li className="flex gap-3">
+                        <span className="text-cyber-accent mt-0.5">▸</span>
+                        <div>
+                          <strong className="text-gray-200 block">Definition (GPT):</strong>
+                          Generative Pretrained Transformer.
+                        </div>
+                      </li>
+                      <li className="flex gap-3">
+                        <span className="text-cyber-accent mt-0.5">▸</span>
+                        <div>
+                          <strong className="text-gray-200 block">Kernaufgabe:</strong>
+                          Statistische <span className="text-cyber-accent">Vorhersage des nächsten Tokens</span> basierend auf dem bisherigen Kontext.
+                        </div>
+                      </li>
+                      <li className="flex gap-3">
+                        <span className="text-cyber-accent mt-0.5">▸</span>
+                        <div>
+                          <strong className="text-gray-200 block">Iterativer Prozess:</strong>
+                          Jede Vorhersage wird Teil des neuen Inputs – eine Endlosschleife der Generierung.
+                        </div>
+                      </li>
+                      <li className="flex gap-3">
+                        <span className="text-cyber-accent mt-0.5">▸</span>
+                        <div>
+                          <strong className="text-gray-200 block">Hochdimensionale Einbettung:</strong>
+                          GPT nutzt <span className="text-cyber-accent">12.288 Dimensionen</span>, um Wörter als Punkte in einem geometrischen Koordinatensystem zueinander in Beziehung zu setzen.
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+
+                  {/* CARD 2: ARCHITEKTUR */}
+                  <div className="bg-cyber-card/40 border border-cyber-border/50 rounded-xl p-6 hover:bg-cyber-card/60 transition-colors">
+                    <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                      <span className="text-cyber-accent">02.</span> Der Transformer-Block
+                    </h4>
+                    <ul className="space-y-4 text-sm text-gray-400 leading-relaxed">
+                      <li className="flex gap-3">
+                        <span className="text-cyber-accent mt-0.5">▸</span>
+                        <div>
+                          <strong className="text-gray-200 block">Schicht 1: Self-Attention:</strong>
+                          Vektoren "sprechen" miteinander. Das Modell passt die Bedeutung je nach Kontext an (z.B. "Bank" als Geldinstitut vs. Sitzgelegenheit).
+                        </div>
+                      </li>
+                      <li className="flex gap-3">
+                        <span className="text-cyber-accent mt-0.5">▸</span>
+                        <div>
+                          <strong className="text-gray-200 block">Schicht 2: Multilayer Perceptron (MLP):</strong>
+                          Das "Faktenwissen". Hier werden gespeicherte Informationen abgerufen, die über den Kontext hinausgehen.
+                        </div>
+                      </li>
+                      <li className="flex gap-3">
+                        <span className="text-cyber-accent mt-0.5">▸</span>
+                        <div>
+                          <strong className="text-gray-200 block">Rekursion:</strong>
+                          Diese zwei Schichten wiederholen sich (bei GPT-3 z.B. <span className="text-cyber-accent">96 Mal</span>), um immer komplexere Abstraktionen zu bilden.
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+
+                  {/* CARD 3: PARAMETER & SKALIERUNG */}
+                  <div className="bg-cyber-card/40 border border-cyber-border/50 rounded-xl p-6 hover:bg-cyber-card/60 transition-colors">
+                    <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                      <span className="text-cyber-accent">03.</span> Parameter & Dimensionen
+                    </h4>
+                    <ul className="space-y-4 text-sm text-gray-400 leading-relaxed">
+                      <li className="flex gap-3">
+                        <span className="text-cyber-accent mt-0.5">▸</span>
+                        <div>
+                          <strong className="text-gray-200 block">Kontextfenster:</strong>
+                          GPT verarbeitet tausende Vektoren gleichzeitig – jeder ein komplexer Punkt im Raum (Tokenisierung).
+                        </div>
+                      </li>
+                      <li className="flex gap-3">
+                        <span className="text-cyber-accent mt-0.5">▸</span>
+                        <div>
+                          <strong className="text-gray-200 block">Parameter-Gewalt:</strong>
+                          GPT-3 nutzt <span className="text-cyber-accent">175 Milliarden Parameter</span>, organisiert in ca. 30.000 Matrizen, um die Gewichtung zu steuern.
+                        </div>
+                      </li>
+                      <li className="flex gap-3">
+                        <span className="text-cyber-accent mt-0.5">▸</span>
+                        <div>
+                          <strong className="text-gray-200 block">Mathematische Grundlage:</strong>
+                          Das Modell basiert auf gewichteten Summen und Matrizenmultiplikation – eine hochkomplexe Weiterentwicklung der linearen Regression.
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+
+                  {/* CARD 4: OUTPUT STEUERUNG */}
+                  <div className="bg-cyber-card/40 border border-cyber-border/50 rounded-xl p-6 hover:bg-cyber-card/60 transition-colors">
+                    <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                      <span className="text-cyber-accent">04.</span> Softmax & Temperatur
+                    </h4>
+                    <ul className="space-y-4 text-sm text-gray-400 leading-relaxed">
+                      <li className="flex gap-3">
+                        <span className="text-cyber-accent mt-0.5">▸</span>
+                        <div>
+                          <strong className="text-gray-200 block">Softmax-Funktion:</strong>
+                          Wandelt die internen Zahlenwerte in eine <span className="text-cyber-accent">Wahrscheinlichkeitsverteilung</span> um (Summe = 100%).
+                        </div>
+                      </li>
+                      <li className="flex gap-3">
+                        <span className="text-cyber-accent mt-0.5">▸</span>
+                        <div>
+                          <strong className="text-gray-200 block">Temperatur = 0 (Greedy):</strong>
+                          Das Modell wählt immer das Wort mit der höchsten Wahrscheinlichkeit (deterministisch).
+                        </div>
+                      </li>
+                      <li className="flex gap-3">
+                        <span className="text-cyber-accent mt-0.5">▸</span>
+                        <div>
+                          <strong className="text-gray-200 block">Temperatur &gt; 0 (Kreativ):</strong>
+                          Die Verteilung wird flacher. Wörter mit geringerer Wahrscheinlichkeit erhalten eine Chance <span className="text-red-400">➜ Risiko für Halluzinationen steigt</span>.
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+
+                </div>
+              </div>
             </div>
           )}
 
