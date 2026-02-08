@@ -306,7 +306,7 @@ const App: React.FC = () => {
                     <li className="flex gap-2">
                       <span className="text-cyber-accent">●</span>
                       <span>
-                        <strong className="text-gray-200">Hidden Layers:</strong> Die "versteckten" Schichten in der Mitte verarbeiten die Informationen.
+                        <strong className="text-gray-200">Hidden Layers:</strong> Das "Gehirn" zwischen Input und Output. In diesen Schichten findet die <span className="text-cyber-accent">Merkmalsextraktion</span> statt: Die KI lernt, Kanten, Kurven und schließlich ganze Formen zu abstrahieren. Ohne diese Schichten könnte ein Modell nur extrem einfache (lineare) Probleme lösen – Hidden Layers ermöglichen erst echtes "Deep Learning" und logisches Verständnis komplexer Muster.
                       </span>
                     </li>
                     <li className="flex gap-2">
