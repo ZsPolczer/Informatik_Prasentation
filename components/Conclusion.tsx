@@ -165,8 +165,13 @@ const Conclusion: React.FC = () => {
                             <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:100%_25%] pointer-events-none"></div>
 
                             {/* Overlay Info */}
-                            <div className="absolute top-4 left-1/2 -translate-x-1/2 text-xs font-mono text-cyan-200/70 bg-black/40 px-2 py-1 rounded backdrop-blur-md border border-cyan-900/30">
-                                {lakeMichiganFilledPercentage < 90 ? '...wird gefüllt...' : '⚠️ EXPONENTIAL SPIKE!'}
+                            <div className="absolute top-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1">
+                                <div className="text-xs font-mono text-cyan-200/70 bg-black/40 px-2 py-1 rounded backdrop-blur-md border border-cyan-900/30 whitespace-nowrap">
+                                    {lakeMichiganFilledPercentage < 90 ? '...wird gefüllt...' : '⚠️ EXPONENTIAL SPIKE!'}
+                                </div>
+                                <div className="text-2xl font-black text-white drop-shadow-[0_0_10px_rgba(0,0,0,0.8)] font-mono">
+                                    {Math.floor(1940 + (lakeMichiganFilledPercentage / 100) * (2026 - 1940))}
+                                </div>
                             </div>
                         </div>
 
