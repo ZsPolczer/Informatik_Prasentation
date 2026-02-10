@@ -424,6 +424,155 @@ const App: React.FC = () => {
                 <h2 className="text-2xl text-white font-bold mb-2">Neurale Netze (Evolution)</h2>
                 <p className="text-gray-400">Beobachte, wie KI-Agenten über Generationen lernen, zu überleben und zu kämpfen.</p>
               </div>
+
+              {/* --- EDUCATIONAL CONTENT --- */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 animate-fade-in">
+
+                {/* CARD 1: BIOLOGICAL BRAIN */}
+                <div className="bg-cyber-card/40 border border-cyber-border/50 rounded-xl p-6 backdrop-blur-sm hover:border-cyber-accent/50 transition-colors">
+                  <h3 className="text-lg text-cyber-accent font-bold mb-4 flex items-center gap-2">
+                    <span className="text-xl">🧠</span> Das biologische Vorbild
+                  </h3>
+                  <ul className="space-y-4 text-sm text-gray-400 leading-relaxed">
+                    <li className="flex gap-3">
+                      <span className="text-cyber-accent mt-0.5">▸</span>
+                      <div>
+                        <strong className="text-gray-200 block">Neuronen & Synapsen:</strong>
+                        Unser Gehirn besteht aus Milliarden von Nervenzellen (Neuronen), die über Verbindungen (Synapsen) kommunizieren.
+                      </div>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="text-cyber-accent mt-0.5">▸</span>
+                      <div>
+                        <strong className="text-gray-200 block">Elektrische Signale:</strong>
+                        Wenn ein Neuron stark genug stimuliert wird, "feuert" es ein elektrisches Signal ab, das an andere Neuronen weitergegeben wird.
+                      </div>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="text-cyber-accent mt-0.5">▸</span>
+                      <div>
+                        <strong className="text-gray-200 block">Lernen durch Verstärkung:</strong>
+                        "Neurons that fire together, wire together." Wenn wir etwas lernen, werden bestimmte Verbindungen stärker (dicker), andere schwächer. Das Gehirn baut sich physisch um.
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* CARD 2: ARTIFICIAL BRAIN */}
+                <div className="bg-cyber-card/40 border border-cyber-border/50 rounded-xl p-6 backdrop-blur-sm hover:border-cyber-accent/50 transition-colors">
+                  <h3 className="text-lg text-cyber-accent font-bold mb-4 flex items-center gap-2">
+                    <span className="text-xl">💻</span> Die künstliche Kopie (KI)
+                  </h3>
+                  <ul className="space-y-4 text-sm text-gray-400 leading-relaxed">
+                    <li className="flex gap-3">
+                      <span className="text-cyber-accent mt-0.5">▸</span>
+                      <div>
+                        <strong className="text-gray-200 block">Knoten & Gewichte:</strong>
+                        Statt Neuronen haben wir mathematische "Knoten". Statt Synapsen haben wir "Gewichte" (Zahlenwerte).
+                      </div>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="text-cyber-accent mt-0.5">▸</span>
+                      <div>
+                        <strong className="text-gray-200 block">Schichten (Layers):</strong>
+                        Ein Signal (Input) wandert durch mehrere Schichten von Knoten, wird jedes Mal mit Gewichten multipliziert und am Ende als Ergebnis (Output) ausgegeben.
+                      </div>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="text-cyber-accent mt-0.5">▸</span>
+                      <div>
+                        <strong className="text-gray-200 block">Iteratives Lernen:</strong>
+                        Die KI "lernt" nicht biologisch, sondern indem sie ihre Gewichte (Zahlen) nach und nach anpasst, um Fehler zu minimieren oder Belohnungen zu maximieren.
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* --- ARENA EXPLANATION --- */}
+              <div className="mb-12 bg-gradient-to-r from-cyber-accent/10 to-purple-600/10 border border-cyber-accent/30 rounded-2xl p-8 backdrop-blur-md relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                  <span className="text-8xl">⚔️</span>
+                </div>
+
+                <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
+                  <span className="w-8 h-8 rounded-lg bg-cyber-accent text-black flex items-center justify-center font-mono">!</span>
+                  Wie funktioniert die "AI Arena"?
+                </h3>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 relative z-10">
+                  {/* Step 1: Sensation */}
+                  <div className="space-y-3">
+                    <div className="text-cyber-accent font-bold uppercase text-xs tracking-widest border-b border-cyber-accent/30 pb-1">Schritt 1: Wahrnehmung (Input)</div>
+                    <p className="text-sm text-gray-300 leading-relaxed">
+                      Der Agent hat "Sensoren" (wie Augen). Er füttert sein Gehirn mit Zahlen:
+                    </p>
+                    <ul className="text-xs text-gray-400 list-disc list-inside space-y-1">
+                      <li>Winkel zum Gegner</li>
+                      <li>Distanz zum Gegner</li>
+                      <li>Sehe ich ihn? (Ja/Nein)</li>
+                      <li>Abstand zu Wänden</li>
+                      <li>Eigener Cooldown</li>
+                    </ul>
+                  </div>
+
+                  {/* Step 2: Processing */}
+                  <div className="space-y-3">
+                    <div className="text-cyber-accent font-bold uppercase text-xs tracking-widest border-b border-cyber-accent/30 pb-1">Schritt 2: Das Gehirn (Verarbeitung)</div>
+                    <p className="text-sm text-gray-300 leading-relaxed">
+                      Diese Zahlen fließen durch das neuronale Netz.
+                      <br /><br />
+                      In den <strong>Hidden Layers</strong> werden die Informationen verknüpft (z.B. "Gegner nah" + "Cooldown bereit" = "Gute Chance").
+                    </p>
+                  </div>
+
+                  {/* Step 3: Action */}
+                  <div className="space-y-3">
+                    <div className="text-cyber-accent font-bold uppercase text-xs tracking-widest border-b border-cyber-accent/30 pb-1">Schritt 3: Entscheidung (Output)</div>
+                    <p className="text-sm text-gray-300 leading-relaxed">
+                      Am Ende kommen 3 Zahlen heraus, die die Aktionen steuern:
+                    </p>
+                    <ul className="text-xs text-gray-400 list-disc list-inside space-y-1">
+                      <li><strong>Drehung:</strong> Links oder Rechts?</li>
+                      <li><strong>Bewegung:</strong> Vor oder Zurück?</li>
+                      <li><strong>Schießen:</strong> Feuer? (Ja/Nein)</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* --- EVOLUTION BOX --- */}
+              <div className="mb-12 bg-cyber-card/20 border border-cyber-border/30 rounded-xl p-6">
+                <h3 className="text-lg text-cyber-accent font-bold mb-4">🧬 Wie lernt der Agent? (Evolution)</h3>
+                <div className="space-y-4 text-sm text-gray-400 leading-relaxed">
+                  <p>
+                    Hier gibt es keinen Lehrer, der sagt "Das war falsch!". Stattdessen nutzen wir das Prinzip der <strong>Ameisen-Evolution</strong>:
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+                    <div className="bg-black/40 p-3 rounded border border-cyber-border/20 text-center">
+                      <div className="text-2xl mb-2">🎲</div>
+                      <div className="font-bold text-white mb-1">1. Zufall</div>
+                      <div className="text-xs">Am Anfang ist das Gehirn komplett zufällig. Der Agent zuckt nur wild herum.</div>
+                    </div>
+                    <div className="bg-black/40 p-3 rounded border border-cyber-border/20 text-center">
+                      <div className="text-2xl mb-2">💀</div>
+                      <div className="font-bold text-white mb-1">2. Selektion</div>
+                      <div className="text-xs">Wer stirbt oder nichts trifft, wird gelöscht. Wer lange überlebt oder trifft, bekommt Punkte (Highscore).</div>
+                    </div>
+                    <div className="bg-black/40 p-3 rounded border border-cyber-border/20 text-center">
+                      <div className="text-2xl mb-2">👶</div>
+                      <div className="font-bold text-white mb-1">3. Vererbung</div>
+                      <div className="text-xs">Der Gewinner der Runde darf sich "fortpflanzen". Sein Gehirn wird in die nächste Runde kopiert.</div>
+                    </div>
+                    <div className="bg-black/40 p-3 rounded border border-cyber-border/20 text-center">
+                      <div className="text-2xl mb-2">✨</div>
+                      <div className="font-bold text-white mb-1">4. Mutation</div>
+                      <div className="text-xs">Die Kopie wird leicht verändert (Mutiert). Vielleicht ist der Neue etwas besser? Wenn ja ➜ Neuer Champion!</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <FightingAgents />
             </div>
           )}
