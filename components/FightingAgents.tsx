@@ -90,6 +90,78 @@ class SimpleNN {
   }
 }
 
+// --- SMART PRESET AGENTS ---
+// Pre-trained neural networks with optimized behaviors
+const PRESET_AGGRESSIVE = {
+  name: 'Preset: Aggressive Fighter',
+  brain: (() => {
+    const nn = new SimpleNN();
+    // Optimized for close combat - high weights for shooting when close
+    // Input 0 (angle): Strong influence on turn
+    nn.weights1[0] = [3.5, -2.1, 1.8, -0.9, 2.4, -1.2, 0.7, -1.5, 1.9, -0.6, 2.2, -1.8];
+    // Input 1 (distance): Negative weights to encourage closing distance
+    nn.weights1[1] = [-2.8, 3.2, -1.5, 2.7, -1.9, 2.1, -0.8, 1.6, -2.3, 3.0, -1.4, 2.5];
+    // Input 2 (LOS): High positive weights
+    nn.weights1[2] = [2.9, -1.3, 3.1, -0.7, 2.5, -1.8, 2.2, -0.9, 3.3, -1.1, 2.7, -1.6];
+    // Input 6 (cooldown): Influence shooting decision
+    nn.weights1[6] = [-2.5, 1.9, -3.2, 2.1, -1.7, 2.8, -2.0, 1.5, -2.9, 2.3, -1.8, 2.6];
+
+    // Output layer: Bias towards shooting (output 2)
+    nn.weights2[0] = [1.2, 0.8, 2.8]; // First hidden neuron
+    nn.weights2[1] = [-0.9, 1.5, -1.2];
+    nn.weights2[2] = [2.1, -0.7, 3.5]; // Strong shoot influence
+    nn.weights2[3] = [-1.3, 2.0, -0.8];
+    nn.weights2[4] = [1.8, -1.1, 2.9];
+    nn.weights2[5] = [-0.6, 1.7, -1.4];
+    nn.weights2[6] = [2.3, -0.9, 3.2]; // Strong shoot bias
+    nn.weights2[7] = [-1.5, 1.3, -1.0];
+    nn.weights2[8] = [1.9, -0.8, 3.1];
+    nn.weights2[9] = [-1.2, 1.6, -0.7];
+    nn.weights2[10] = [2.5, -1.0, 2.7];
+    nn.weights2[11] = [-0.9, 1.4, -1.3];
+
+    nn.bias2 = [0.3, 0.5, 2.8]; // Strong shoot bias
+    return nn;
+  })()
+};
+
+const PRESET_TACTICAL = {
+  name: 'Preset: Tactical Sniper',
+  brain: (() => {
+    const nn = new SimpleNN();
+    // Optimized for precise aiming and distance control
+    // Input 0 (angle): Very high precision on turning
+    nn.weights1[0] = [4.2, -3.5, 2.9, -2.1, 3.8, -2.7, 1.9, -3.2, 3.5, -2.4, 4.0, -3.1];
+    // Input 1 (distance): Maintain optimal range
+    nn.weights1[1] = [1.5, -2.9, 2.3, -1.7, 2.8, -2.1, 1.9, -2.5, 2.6, -1.9, 2.2, -2.7];
+    // Input 2 (LOS): Critical for shooting decision
+    nn.weights1[2] = [3.8, -2.2, 4.1, -1.8, 3.5, -2.6, 3.2, -2.0, 4.3, -2.4, 3.7, -2.8];
+    // Input 3-5 (walls): Obstacle awareness
+    nn.weights1[3] = [-2.1, 1.8, -2.5, 1.5, -1.9, 2.2, -1.7, 1.9, -2.3, 1.6, -2.0, 2.1];
+    nn.weights1[4] = [-1.9, 1.6, -2.3, 1.4, -1.7, 2.0, -1.5, 1.7, -2.1, 1.5, -1.8, 1.9];
+    nn.weights1[5] = [-1.8, 1.5, -2.2, 1.3, -1.6, 1.9, -1.4, 1.6, -2.0, 1.4, -1.7, 1.8];
+    // Input 6 (cooldown): Wait for perfect shot
+    nn.weights1[6] = [-3.5, 2.8, -4.2, 3.1, -2.9, 3.7, -3.2, 2.6, -3.9, 3.3, -3.1, 3.5];
+
+    // Output layer: Precise, calculated shooting
+    nn.weights2[0] = [2.5, 0.3, 1.9];
+    nn.weights2[1] = [-1.8, 0.9, -1.2];
+    nn.weights2[2] = [3.2, -0.5, 2.8];
+    nn.weights2[3] = [-2.1, 1.2, -0.9];
+    nn.weights2[4] = [2.9, -0.7, 2.5];
+    nn.weights2[5] = [-1.5, 1.0, -1.3];
+    nn.weights2[6] = [3.5, -0.4, 3.1]; // Controlled shooting
+    nn.weights2[7] = [-2.3, 0.8, -1.1];
+    nn.weights2[8] = [3.1, -0.6, 2.7];
+    nn.weights2[9] = [-1.9, 1.1, -0.8];
+    nn.weights2[10] = [3.8, -0.3, 3.3];
+    nn.weights2[11] = [-2.5, 0.7, -1.4];
+
+    nn.bias2 = [0.5, 0.2, 1.9]; // Moderate shoot bias, focus on precision
+    return nn;
+  })()
+};
+
 // --- GAME STATE ---
 interface GameState {
   nnAgent: { x: number, y: number, angle: number, hp: number, cooldown: number, brain: SimpleNN };
@@ -124,23 +196,35 @@ export const FightingAgents: React.FC = () => {
   }, []);
 
   const updateSavedList = () => {
-    const keys = Object.keys(localStorage).filter(k => k.startsWith('AGENT_'));
-    setSavedAgents(keys.map(k => k.replace('AGENT_', '')));
+    const keys = Object.keys(sessionStorage).filter(k => k.startsWith('AGENT_'));
+    const saved = keys.map(k => k.replace('AGENT_', ''));
+    // Always include presets
+    setSavedAgents([...saved, PRESET_AGGRESSIVE.name, PRESET_TACTICAL.name]);
   };
 
   const saveAgent = () => {
     const name = prompt("Name this agent:", `Gen ${state.current.generation} Score ${state.current.bestScore.toFixed(0)}`);
     if (name) {
-      localStorage.setItem('AGENT_' + name, JSON.stringify(state.current.bestBrain.toJSON()));
+      sessionStorage.setItem('AGENT_' + name, JSON.stringify(state.current.bestBrain.toJSON()));
       updateSavedList();
     }
   };
 
   const loadAgent = (name: string, slot: 'NN' | 'BOT') => {
-    const jsonStr = localStorage.getItem('AGENT_' + name);
-    if (!jsonStr) return;
-    const json = JSON.parse(jsonStr);
-    const brain = SimpleNN.fromJSON(json);
+    let brain: SimpleNN;
+
+    // Check if loading a preset
+    if (name === PRESET_AGGRESSIVE.name) {
+      brain = new SimpleNN(PRESET_AGGRESSIVE.brain);
+    } else if (name === PRESET_TACTICAL.name) {
+      brain = new SimpleNN(PRESET_TACTICAL.brain);
+    } else {
+      // Load from session storage
+      const jsonStr = sessionStorage.getItem('AGENT_' + name);
+      if (!jsonStr) return;
+      const json = JSON.parse(jsonStr);
+      brain = SimpleNN.fromJSON(json);
+    }
 
     if (slot === 'NN') {
       state.current.nnAgent.brain = brain;

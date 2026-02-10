@@ -87,16 +87,14 @@ const App: React.FC = () => {
           {activeModule === 'intro' && (
             <div className="group relative rounded-xl p-[1px] bg-gradient-to-br from-cyber-border to-cyber-accent/50 mb-12 shadow-2xl hover:shadow-[0_0_30px_rgba(0,242,255,0.2)] transition-all duration-500">
               <div className="bg-cyber-card rounded-xl overflow-hidden aspect-video relative">
-                <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-10 group-hover:bg-black/20 transition-all backdrop-blur-[2px] group-hover:backdrop-blur-none">
-                  <div className="text-center">
-                    <div className="w-16 h-16 rounded-full border-2 border-cyber-accent flex items-center justify-center mx-auto mb-4 text-cyber-accent group-hover:bg-cyber-accent group-hover:text-black transition-all duration-300 shadow-[0_0_20px_rgba(0,242,255,0.4)]">
-                      <svg className="w-6 h-6 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-                    </div>
-                    <span className="text-cyber-accent font-mono text-sm tracking-widest uppercase font-bold">
-                      Einführungsvideo
-                    </span>
-                  </div>
-                </div>
+                <iframe
+                  className="w-full h-full border-0"
+                  src="https://www.youtube.com/embed/b7lpkW-CsFo?si=eV5wE7RLd7l3kR5o"
+                  title="YouTube video player"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allowFullScreen
+                ></iframe>
               </div>
             </div>
           )}
@@ -536,6 +534,65 @@ const App: React.FC = () => {
                       <li><strong>Drehung:</strong> Links oder Rechts?</li>
                       <li><strong>Bewegung:</strong> Vor oder Zurück?</li>
                       <li><strong>Schießen:</strong> Feuer? (Ja/Nein)</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* --- NEURAL NETWORK TECHNICAL DETAILS --- */}
+              <div className="mb-12 bg-black/40 border border-cyber-accent/20 rounded-xl p-6 backdrop-blur-sm">
+                <h3 className="text-lg text-white font-bold mb-4 flex items-center gap-2">
+                  <span className="text-cyber-accent">🧠</span> Technische Details des Neuralen Netzes
+                </h3>
+                <div className="space-y-4 text-sm text-gray-300 leading-relaxed">
+                  <div>
+                    <div className="text-cyber-accent font-semibold mb-2">📊 Architektur: 2-Schichten Netzwerk</div>
+                    <ul className="list-disc list-inside space-y-1 text-xs text-gray-400 ml-4">
+                      <li><strong>Input Layer:</strong> 8 Neuronen (Sensor-Daten)</li>
+                      <li><strong>Hidden Layer:</strong> 12 Neuronen mit tanh-Aktivierung</li>
+                      <li><strong>Output Layer:</strong> 3 Neuronen (Aktionen)</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <div className="text-cyber-accent font-semibold mb-2">📥 Inputs (8 Werte, normalisiert -1 bis 1):</div>
+                    <ul className="list-disc list-inside space-y-1 text-xs text-gray-400 ml-4">
+                      <li><strong>Winkel zum Gegner</strong> (normalisiert durch π)</li>
+                      <li><strong>Distanz zum Gegner</strong> (relativ zur Arena-Breite)</li>
+                      <li><strong>Line-of-Sight</strong> (0 = blockiert, 1 = freie Sicht)</li>
+                      <li><strong>Wandsensor vorne</strong> (0 = weit, 1 = sehr nah)</li>
+                      <li><strong>Wandsensor links</strong> (Analog-Wert)</li>
+                      <li><strong>Wandsensor rechts</strong> (Analog-Wert)</li>
+                      <li><strong>Waffen-Cooldown</strong> (0 = bereit, 1 = leer)</li>
+                      <li><strong>Bias</strong> (immer 1, ermöglicht Schwellenwerte)</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <div className="text-cyber-accent font-semibold mb-2">🔄 Hidden Layer (12 Neuronen):</div>
+                    <ul className="list-disc list-inside space-y-1 text-xs text-gray-400 ml-4">
+                      <li>Jedes Neuron empfängt alle 8 Inputs mit individuellen Gewichten</li>
+                      <li><strong>Aktivierungsfunktion:</strong> tanh (Output: -1 bis 1)</li>
+                      <li>Erlaubt <strong>nicht-lineare</strong> Entscheidungen (z.B. "WENN nah UND Cooldown bereit DANN schießen")</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <div className="text-cyber-accent font-semibold mb-2">📤 Outputs (3 Aktionen, -1 bis 1):</div>
+                    <ul className="list-disc list-inside space-y-1 text-xs text-gray-400 ml-4">
+                      <li><strong>Drehung:</strong> -1 = links drehen, 0 = geradeaus, +1 = rechts drehen</li>
+                      <li><strong>Bewegung:</strong> -1 = rückwärts, 0 = stehen, +1 = vorwärts</li>
+                      <li><strong>Schießen:</strong> \u003e0 = Feuer!, \u003c0 = nicht schießen</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <div className="text-cyber-accent font-semibold mb-2">🎯 Lernen (Evolutionärer Algorithmus):</div>
+                    <ul className="list-disc list-inside space-y-1 text-xs text-gray-400 ml-4">
+                      <li><strong>Fitness-Funktion:</strong> Belohnung für Treffer (+300), Strafe für Tod (-150)</li>
+                      <li><strong>Selektion:</strong> Bester Agent überlebt und wird kopiert</li>
+                      <li><strong>Mutation:</strong> Gewichte werden leicht zufällig verändert (Mutationsrate konfigurierbar)</li>
+                      <li><strong>Keine Backpropagation:</strong> Reines Trial-and-Error über Generationen</li>
                     </ul>
                   </div>
                 </div>
