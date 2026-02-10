@@ -150,19 +150,29 @@ const Conclusion: React.FC = () => {
                         Stellen Sie sich vor, der leere Lake Michigan wird mit Wassertropfen gefüllt. Das Volumen verdoppelt sich alle 18 Monate.
                     </p>
                     <div className="space-y-4">
-                        <div className="flex justify-between text-xs font-mono text-gray-500">
-                            <span>Tag 1: 1 Tropfen</span>
-                            <span>... fast leer ...</span>
-                            <span>Kurz vor Ende: VOLL</span>
-                        </div>
-                        <div className="h-4 bg-gray-800 rounded-full overflow-hidden border border-cyber-border">
+                        <div className="relative w-full h-48 bg-gradient-to-b from-gray-900/0 to-blue-900/10 border-b-2 border-l border-r border-gray-700 rounded-b-[50%] overflow-hidden backdrop-blur-sm group">
+
+                            {/* Water */}
                             <div
-                                className="h-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)] transition-all duration-300"
-                                style={{ width: `${Math.pow(2, (lakeMichiganFilledPercentage / 100) * 10) / 1024 * 100}%` }}
-                            ></div>
+                                className="absolute bottom-0 w-full bg-gradient-to-t from-blue-600 to-cyan-400 transition-all duration-100 ease-linear shadow-[0_0_30px_rgba(6,182,212,0.6)]"
+                                style={{ height: `${Math.pow(2, (lakeMichiganFilledPercentage / 100) * 10) / 1024 * 100}%` }}
+                            >
+                                {/* Water Surface */}
+                                <div className="absolute top-0 w-full h-[2px] bg-white/50 shadow-[0_0_10px_white]"></div>
+                            </div>
+
+                            {/* Background Grid for Scale */}
+                            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:100%_25%] pointer-events-none"></div>
+
+                            {/* Overlay Info */}
+                            <div className="absolute top-4 left-1/2 -translate-x-1/2 text-xs font-mono text-cyan-200/70 bg-black/40 px-2 py-1 rounded backdrop-blur-md border border-cyan-900/30">
+                                {lakeMichiganFilledPercentage < 90 ? '...wird gefüllt...' : '⚠️ EXPONENTIAL SPIKE!'}
+                            </div>
                         </div>
-                        <p className="text-xs text-center text-gray-600 italic">
-                            Nach 30 Verdopplungen ist ein See voll, der 29 Verdopplungen lang fast leer aussah.
+
+                        <p className="text-xs text-center text-gray-400 italic mt-2">
+                            Der See bleibt lange leer, bis er in den letzten Momenten plötzlich überläuft. <br />
+                            <span className="text-cyan-400 font-mono">Füllstand: {(Math.pow(2, (lakeMichiganFilledPercentage / 100) * 10) / 1024 * 100).toFixed(4)}%</span>
                         </p>
                     </div>
                 </div>
