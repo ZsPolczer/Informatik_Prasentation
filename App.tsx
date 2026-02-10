@@ -541,6 +541,65 @@ const App: React.FC = () => {
                 </div>
               </div>
 
+              {/* --- NEURAL NETWORK TECHNICAL DETAILS --- */}
+              <div className="mb-12 bg-black/40 border border-cyber-accent/20 rounded-xl p-6 backdrop-blur-sm">
+                <h3 className="text-lg text-white font-bold mb-4 flex items-center gap-2">
+                  <span className="text-cyber-accent">🧠</span> Technische Details des Neuralen Netzes
+                </h3>
+                <div className="space-y-4 text-sm text-gray-300 leading-relaxed">
+                  <div>
+                    <div className="text-cyber-accent font-semibold mb-2">📊 Architektur: 2-Schichten Netzwerk</div>
+                    <ul className="list-disc list-inside space-y-1 text-xs text-gray-400 ml-4">
+                      <li><strong>Input Layer:</strong> 8 Neuronen (Sensor-Daten)</li>
+                      <li><strong>Hidden Layer:</strong> 12 Neuronen mit tanh-Aktivierung</li>
+                      <li><strong>Output Layer:</strong> 3 Neuronen (Aktionen)</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <div className="text-cyber-accent font-semibold mb-2">📥 Inputs (8 Werte, normalisiert -1 bis 1):</div>
+                    <ul className="list-disc list-inside space-y-1 text-xs text-gray-400 ml-4">
+                      <li><strong>Winkel zum Gegner</strong> (normalisiert durch π)</li>
+                      <li><strong>Distanz zum Gegner</strong> (relativ zur Arena-Breite)</li>
+                      <li><strong>Line-of-Sight</strong> (0 = blockiert, 1 = freie Sicht)</li>
+                      <li><strong>Wandsensor vorne</strong> (0 = weit, 1 = sehr nah)</li>
+                      <li><strong>Wandsensor links</strong> (Analog-Wert)</li>
+                      <li><strong>Wandsensor rechts</strong> (Analog-Wert)</li>
+                      <li><strong>Waffen-Cooldown</strong> (0 = bereit, 1 = leer)</li>
+                      <li><strong>Bias</strong> (immer 1, ermöglicht Schwellenwerte)</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <div className="text-cyber-accent font-semibold mb-2">🔄 Hidden Layer (12 Neuronen):</div>
+                    <ul className="list-disc list-inside space-y-1 text-xs text-gray-400 ml-4">
+                      <li>Jedes Neuron empfängt alle 8 Inputs mit individuellen Gewichten</li>
+                      <li><strong>Aktivierungsfunktion:</strong> tanh (Output: -1 bis 1)</li>
+                      <li>Erlaubt <strong>nicht-lineare</strong> Entscheidungen (z.B. "WENN nah UND Cooldown bereit DANN schießen")</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <div className="text-cyber-accent font-semibold mb-2">📤 Outputs (3 Aktionen, -1 bis 1):</div>
+                    <ul className="list-disc list-inside space-y-1 text-xs text-gray-400 ml-4">
+                      <li><strong>Drehung:</strong> -1 = links drehen, 0 = geradeaus, +1 = rechts drehen</li>
+                      <li><strong>Bewegung:</strong> -1 = rückwärts, 0 = stehen, +1 = vorwärts</li>
+                      <li><strong>Schießen:</strong> \u003e0 = Feuer!, \u003c0 = nicht schießen</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <div className="text-cyber-accent font-semibold mb-2">🎯 Lernen (Evolutionärer Algorithmus):</div>
+                    <ul className="list-disc list-inside space-y-1 text-xs text-gray-400 ml-4">
+                      <li><strong>Fitness-Funktion:</strong> Belohnung für Treffer (+300), Strafe für Tod (-150)</li>
+                      <li><strong>Selektion:</strong> Bester Agent überlebt und wird kopiert</li>
+                      <li><strong>Mutation:</strong> Gewichte werden leicht zufällig verändert (Mutationsrate konfigurierbar)</li>
+                      <li><strong>Keine Backpropagation:</strong> Reines Trial-and-Error über Generationen</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
               {/* --- EVOLUTION BOX --- */}
               <div className="mb-12 bg-cyber-card/20 border border-cyber-border/30 rounded-xl p-6">
                 <h3 className="text-lg text-cyber-accent font-bold mb-4">🧬 Wie lernt der Agent? (Evolution)</h3>
