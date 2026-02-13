@@ -15,7 +15,7 @@ View your app in AI Studio: https://ai.studio/apps/drive/1EwamNui-gIzkkkjN-fcL9z
 
 1. Install dependencies:
    `npm install`
-2. Set the `OPENROUTER_API_KEY` in [.env](.env) to your OpenRouter API key (see [API Security Setup](API_SECURITY_SETUP.md) for details)
+2. Set the `OPENROUTER_API_KEY` in [.env](.env) to your OpenRouter API key (see [API Security Setup](API_SECURITY_SETUP.md) for details) - **Note: This file is excluded from version control for security**
 3. Run the app:
    `npm run dev`
 

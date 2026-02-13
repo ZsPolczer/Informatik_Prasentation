@@ -1,4 +1,6 @@
 // Backend proxy server for AI API calls
+// IMPORTANT: This server handles API requests securely by keeping the API key on the server-side
+// The API key is loaded from environment variables and never exposed to the client
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
