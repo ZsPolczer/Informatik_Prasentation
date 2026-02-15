@@ -630,6 +630,21 @@ const App: React.FC = () => {
                 </div>
               </div>
 
+              {/* --- ARCHITECTURE SCREENSHOT --- */}
+              <div className="mb-12 group relative rounded-xl p-[1px] bg-gradient-to-br from-cyber-border to-cyber-accent/50 shadow-2xl hover:shadow-[0_0_30px_rgba(0,242,255,0.3)] transition-all duration-500 overflow-hidden">
+                <img
+                  src="/screenshots/architecture_screenshot.png"
+                  alt="AI Architecture Screenshot"
+                  className="w-full h-auto rounded-xl object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                />
+                <div className="absolute bottom-0 left-0 right-0 bg-black/60 backdrop-blur-md p-4 border-t border-cyber-border/30">
+                  <p className="text-xs font-mono text-cyber-accent uppercase tracking-widest flex items-center gap-2">
+                    <span className="w-2 h-2 bg-cyber-accent rounded-full animate-pulse"></span>
+                    Live-System Architektur & Analyse
+                  </p>
+                </div>
+              </div>
+
               <FightingAgents />
             </div>
           )}
