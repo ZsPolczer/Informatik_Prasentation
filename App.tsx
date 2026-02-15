@@ -436,14 +436,14 @@ const App: React.FC = () => {
                       <span className="text-cyber-accent mt-0.5">▸</span>
                       <div>
                         <strong className="text-gray-200 block">Neuronen & Synapsen:</strong>
-                        Unser Gehirn besteht aus Milliarden von Nervenzellen (Neuronen), die über Verbindungen (Synapsen) kommunizieren.
+                        Unser Gehirn besteht aus Milliarden von Nervenzellen (<span className="text-cyber-accent">Neuronen</span>), die über Verbindungen (<span className="text-cyber-accent">Synapsen</span>) kommunizieren.
                       </div>
                     </li>
                     <li className="flex gap-3">
                       <span className="text-cyber-accent mt-0.5">▸</span>
                       <div>
                         <strong className="text-gray-200 block">Elektrische Signale:</strong>
-                        Wenn ein Neuron stark genug stimuliert wird, "feuert" es ein elektrisches Signal ab, das an andere Neuronen weitergegeben wird.
+                        Wenn ein Neuron stark genug stimuliert wird, "feuert" es ein <span className="text-cyber-accent">elektrisches Signal</span> ab, das an andere Neuronen weitergegeben wird.
                       </div>
                     </li>
                     <li className="flex gap-3">
@@ -466,14 +466,14 @@ const App: React.FC = () => {
                       <span className="text-cyber-accent mt-0.5">▸</span>
                       <div>
                         <strong className="text-gray-200 block">Knoten & Gewichte:</strong>
-                        Statt Neuronen haben wir mathematische "Knoten". Statt Synapsen haben wir "Gewichte" (Zahlenwerte).
+                        Statt Neuronen haben wir <span className="text-cyber-accent">mathematische "Knoten"</span>. Statt Synapsen haben wir "Gewichte" (<span className="text-cyber-accent">Zahlenwerte</span>).
                       </div>
                     </li>
                     <li className="flex gap-3">
                       <span className="text-cyber-accent mt-0.5">▸</span>
                       <div>
                         <strong className="text-gray-200 block">Schichten (Layers):</strong>
-                        Ein Signal (Input) wandert durch mehrere Schichten von Knoten, wird jedes Mal mit Gewichten multipliziert und am Ende als Ergebnis (Output) ausgegeben.
+                        Ein Signal (Input) wandert durch mehrere <span className="text-cyber-accent">Schichten von Knoten</span>, wird jedes Mal mit Gewichten multipliziert und am Ende als Ergebnis (Output) ausgegeben.
                       </div>
                     </li>
                     <li className="flex gap-3">
@@ -503,7 +503,7 @@ const App: React.FC = () => {
                   <div className="space-y-3">
                     <div className="text-cyber-accent font-bold uppercase text-xs tracking-widest border-b border-cyber-accent/30 pb-1">Schritt 1: Wahrnehmung (Input)</div>
                     <p className="text-sm text-gray-300 leading-relaxed">
-                      Der Agent hat "Sensoren" (wie Augen). Er füttert sein Gehirn mit Zahlen:
+                      Der Agent hat <span className="text-cyber-accent">"Sensoren"</span> (wie Augen). Er füttert sein Gehirn mit Zahlen:
                     </p>
                     <ul className="text-xs text-gray-400 list-disc list-inside space-y-1">
                       <li>Winkel zum Gegner</li>
@@ -518,7 +518,7 @@ const App: React.FC = () => {
                   <div className="space-y-3">
                     <div className="text-cyber-accent font-bold uppercase text-xs tracking-widest border-b border-cyber-accent/30 pb-1">Schritt 2: Das Gehirn (Verarbeitung)</div>
                     <p className="text-sm text-gray-300 leading-relaxed">
-                      Diese Zahlen fließen durch das neuronale Netz.
+                      Diese Zahlen fließen durch das <span className="text-cyber-accent">neuronale Netz</span>.
                       <br /><br />
                       In den <strong>Hidden Layers</strong> werden die Informationen verknüpft (z.B. "Gegner nah" + "Cooldown bereit" = "<span className="text-cyber-accent">Gute Chance</span>").
                     </p>
@@ -548,9 +548,9 @@ const App: React.FC = () => {
                   <div>
                     <div className="text-cyber-accent font-semibold mb-2">📊 Architektur: 2-Schichten Netzwerk</div>
                     <ul className="list-disc list-inside space-y-1 text-xs text-gray-400 ml-4">
-                      <li><strong>Input Layer:</strong> 8 Neuronen (Sensor-Daten)</li>
+                      <li><strong>Input Layer:</strong> 8 <span className="text-cyber-accent">Neuronen</span> (Sensor-Daten)</li>
                       <li><strong>Hidden Layer:</strong> 12 Neuronen mit tanh-Aktivierung</li>
-                      <li><strong>Output Layer:</strong> 3 Neuronen (Aktionen)</li>
+                      <li><strong>Output Layer:</strong> 3 <span className="text-cyber-accent">Neuronen</span> (Aktionen)</li>
                     </ul>
                   </div>
 
@@ -589,9 +589,9 @@ const App: React.FC = () => {
                   <div>
                     <div className="text-cyber-accent font-semibold mb-2">🎯 Lernen (Evolutionärer Algorithmus):</div>
                     <ul className="list-disc list-inside space-y-1 text-xs text-gray-400 ml-4">
-                      <li><strong>Fitness-Funktion:</strong> Belohnung für Treffer (+300), Strafe für Tod (-150)</li>
+                      <li><strong>Fitness-Funktion:</strong> <span className="text-cyber-accent">Belohnung</span> für Treffer (+300), <span className="text-cyber-accent">Strafe</span> für Tod (-150)</li>
                       <li><strong>Selektion:</strong> Bester Agent überlebt und wird kopiert</li>
-                      <li><strong>Mutation:</strong> Gewichte werden leicht zufällig verändert (Mutationsrate konfigurierbar)</li>
+                      <li><strong>Mutation:</strong> Gewichte werden leicht <span className="text-cyber-accent">zufällig verändert</span> (Mutationsrate konfigurierbar)</li>
                       <li><strong>Keine Backpropagation:</strong> Reines <span className="text-cyber-accent">Trial-and-Error</span> über Generationen</li>
                     </ul>
                   </div>
@@ -609,12 +609,12 @@ const App: React.FC = () => {
                     <div className="bg-black/40 p-3 rounded border border-cyber-border/20 text-center">
                       <div className="text-2xl mb-2">🎲</div>
                       <div className="font-bold text-white mb-1">1. Zufall</div>
-                      <div className="text-xs">Am Anfang ist das Gehirn komplett zufällig. Der Agent zuckt nur wild herum.</div>
+                      <div className="text-xs">Am Anfang ist das Gehirn komplett <span className="text-cyber-accent">zufällig</span>. Der Agent zuckt nur wild herum.</div>
                     </div>
                     <div className="bg-black/40 p-3 rounded border border-cyber-border/20 text-center">
                       <div className="text-2xl mb-2">💀</div>
                       <div className="font-bold text-white mb-1">2. Selektion</div>
-                      <div className="text-xs">Wer stirbt oder nichts trifft, wird gelöscht. Wer lange überlebt oder trifft, bekommt Punkte (Highscore).</div>
+                      <div className="text-xs">Wer stirbt oder nichts trifft, wird gelöscht. Wer lange überlebt oder trifft, bekommt Punkte (<span className="text-cyber-accent">Highscore</span>).</div>
                     </div>
                     <div className="bg-black/40 p-3 rounded border border-cyber-border/20 text-center">
                       <div className="text-2xl mb-2">👶</div>
