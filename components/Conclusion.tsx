@@ -247,13 +247,13 @@ const Conclusion: React.FC = () => {
                         </svg>
 
                         <div className="absolute right-0 bottom-[-20px] text-[10px] text-gray-500 font-mono">Zukunft</div>
-                        <div className="absolute -left-8 top-0 text-[10px] text-gray-500 font-mono rotate-270" style={{ transform: 'rotate(-90deg)', transformOrigin: 'left top' }}>Intelligenz</div>
+                        <div className="absolute -left-8 top-4 text-[10px] text-gray-500 font-mono" style={{ transform: 'rotate(-90deg)', transformOrigin: 'left top' }}>Intelligenz</div>
                     </div>
 
                     <p className="text-[11px] text-gray-500 leading-tight">
                         {takeoffType === 'slow'
-                            ? "Der <span className='text-cyber-accent'>'Slow Takeoff'</span> vermutet eine stetige, aber kontrollierbare Entwicklung über Jahrzehnte nach Erreichen von AGI."
-                            : "Der <span className='text-red-500'>'Fast Takeoff' (Singularität)</span> geht davon aus, dass ASI innerhalb von Minuten oder Stunden nach AGI entsteht."}
+                            ? <>Der <span className='text-cyber-accent'>'Slow Takeoff'</span> vermutet eine stetige, aber kontrollierbare Entwicklung über Jahrzehnte nach Erreichen von AGI.</>
+                            : <>Der <span className='text-red-500'>'Fast Takeoff' (Singularität)</span> geht davon aus, dass ASI innerhalb von Minuten oder Stunden nach AGI entsteht.</>}
                     </p>
                 </div>
             </section>
