@@ -630,22 +630,52 @@ const App: React.FC = () => {
                 </div>
               </div>
 
-              {/* --- ARCHITECTURE SCREENSHOT --- */}
-              <div className="mb-12 group relative rounded-xl p-[1px] bg-gradient-to-br from-cyber-border to-cyber-accent/50 shadow-2xl hover:shadow-[0_0_30px_rgba(0,242,255,0.3)] transition-all duration-500 overflow-hidden">
-                <img
-                  src="/screenshots/architecture_screenshot.png"
-                  alt="AI Architecture Screenshot"
-                  className="w-full h-auto rounded-xl object-cover opacity-90 group-hover:opacity-100 transition-opacity"
-                />
-                <div className="absolute bottom-0 left-0 right-0 bg-black/60 backdrop-blur-md p-4 border-t border-cyber-border/30">
-                  <p className="text-xs font-mono text-cyber-accent uppercase tracking-widest flex items-center gap-2">
-                    <span className="w-2 h-2 bg-cyber-accent rounded-full animate-pulse"></span>
-                    Live-System Architektur & Analyse
-                  </p>
+              <FightingAgents />
+
+              {/* --- CODE SNIPPET (SimpleNN) --- */}
+              <div className="mt-12 bg-[#0d1219] border border-cyber-border/50 rounded-xl overflow-hidden shadow-2xl">
+                <div className="bg-black/60 px-4 py-2 border-b border-cyber-border/30 flex justify-between items-center">
+                  <span className="text-xs font-mono text-cyber-accent uppercase tracking-widest">🧬 AgentBrain.ts</span>
+                  <div className="flex gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-red-500/20 border border-red-500/50"></span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/20 border border-yellow-500/50"></span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-green-500/20 border border-green-500/50"></span>
+                  </div>
+                </div>
+                <div className="p-4 overflow-x-auto max-h-80 overflow-y-auto custom-scrollbar">
+                  <pre className="text-xs font-mono leading-relaxed text-gray-300">
+                    <code>
+                      {`class SimpleNN {
+  // Input: 8 Sensoren (Winkel, Distanz, Walls...)
+  // Hidden: 12 Neuronen (Gedächtnis/Verarbeitung)
+  // Output: 3 Aktionen (Drehen, Laufen, Schießen)
+
+  predict(inputs: number[]): number[] {
+    // 1. Layer: Input -> Hidden
+    const hidden = this.bias1.map((b, i) => {
+      let sum = b;
+      for (let j = 0; j < INPUT_SIZE; j++) {
+        sum += inputs[j] * this.weights1[j][i]; // Gewichtete Summe
+      }
+      return Math.tanh(sum); // Aktivierungsfunktion (-1 bis 1)
+    });
+
+    // 2. Layer: Hidden -> Output
+    const output = this.bias2.map((b, i) => {
+      let sum = b;
+      for (let j = 0; j < HIDDEN_SIZE; j++) {
+        sum += hidden[j] * this.weights2[j][i];
+      }
+      return Math.tanh(sum); // Entscheidung!
+    });
+
+    return output;
+  }
+}`}
+                    </code>
+                  </pre>
                 </div>
               </div>
-
-              <FightingAgents />
             </div>
           )}
 
