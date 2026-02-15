@@ -41,8 +41,8 @@ const App: React.FC = () => {
 
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-cyber-border/50 pb-8 mb-8">
             <p className="text-gray-400 text-lg max-w-2xl leading-relaxed">
-              Eine interaktive Reise in das Gehirn künstlicher Intelligenz.
-              Erlebe, wie neuronale Netze "denken" und "sehen".
+              Eine interaktive Reise in das <span className="text-cyber-accent">Gehirn künstlicher Intelligenz</span>.
+              Erlebe, wie <span className="text-cyber-accent">neuronale Netze</span> "denken" und "sehen".
             </p>
 
             {/* CREDITS SECTION */}
@@ -104,7 +104,7 @@ const App: React.FC = () => {
               <div>
                 <div className="mb-6">
                   <h2 className="text-2xl text-white font-bold mb-2">Wie generiert KI Antworten?</h2>
-                  <p className="text-gray-400">Verstehe die Architektur und den Einfluss von "Temperatur" auf die Kreativität von KI-Modellen.</p>
+                  <p className="text-gray-400">Verstehe die Architektur und den Einfluss von <span className="text-cyber-accent">"Temperatur"</span> auf die Kreativität von KI-Modellen.</p>
                 </div>
               </div>
 
@@ -126,7 +126,7 @@ const App: React.FC = () => {
                         <span className="text-cyber-accent mt-0.5">▸</span>
                         <div>
                           <strong className="text-gray-200 block">Definition (GPT):</strong>
-                          Generative Pretrained Transformer.
+                          Generative <span className="text-cyber-accent">Pretrained Transformer</span>.
                         </div>
                       </li>
                       <li className="flex gap-3">
@@ -140,7 +140,7 @@ const App: React.FC = () => {
                         <span className="text-cyber-accent mt-0.5">▸</span>
                         <div>
                           <strong className="text-gray-200 block">Iterativer Prozess:</strong>
-                          Jede Vorhersage wird Teil des neuen Inputs – eine Endlosschleife der Generierung.
+                          Jede <span className="text-cyber-accent">Vorhersage</span> wird Teil des neuen Inputs – eine Endlosschleife der Generierung.
                         </div>
                       </li>
                       <li className="flex gap-3">
@@ -163,7 +163,7 @@ const App: React.FC = () => {
                         <span className="text-cyber-accent mt-0.5">▸</span>
                         <div>
                           <strong className="text-gray-200 block">Schicht 1: Self-Attention:</strong>
-                          Vektoren "sprechen" miteinander. Das Modell passt die Bedeutung je nach Kontext an (z.B. "Bank" als Geldinstitut vs. Sitzgelegenheit).
+                          Vektoren "sprechen" miteinander. Das Modell passt die Bedeutung je nach <span className="text-cyber-accent">Kontext</span> an (z.B. "Bank" als Geldinstitut vs. Sitzgelegenheit).
                         </div>
                       </li>
                       <li className="flex gap-3">
@@ -193,7 +193,7 @@ const App: React.FC = () => {
                         <span className="text-cyber-accent mt-0.5">▸</span>
                         <div>
                           <strong className="text-gray-200 block">Kontextfenster:</strong>
-                          GPT verarbeitet tausende Vektoren gleichzeitig – jeder ein komplexer Punkt im Raum (Tokenisierung).
+                          GPT verarbeitet tausende Vektoren gleichzeitig – jeder ein komplexer Punkt im Raum (<span className="text-cyber-accent">Tokenisierung</span>).
                         </div>
                       </li>
                       <li className="flex gap-3">
@@ -260,7 +260,7 @@ const App: React.FC = () => {
             <div>
               <div className="mb-6">
                 <h2 className="text-2xl text-white font-bold mb-2">Machine Learning (Perzeptron)</h2>
-                <p className="text-gray-400">Ein Blick in die einfachste Form eines neuronalen Netzes: Das Perzeptron. Zeichne eine Zahl!</p>
+                <p className="text-gray-400">Ein Blick in die einfachste Form eines <span className="text-cyber-accent">neuronalen Netzes</span>: Das Perzeptron. Zeichne eine Zahl!</p>
               </div>
 
               <div className="mb-12">
@@ -277,7 +277,7 @@ const App: React.FC = () => {
                     <li className="flex gap-2">
                       <span className="text-cyber-accent">●</span>
                       <span>
-                        <strong className="text-gray-200">Biologisches Vorbild:</strong> Inspiriert von unserem Gehirn. Neuronen feuern Signale ab.
+                        <strong className="text-gray-200">Biologisches Vorbild:</strong> Inspiriert von unserem Gehirn. <span className="text-cyber-accent">Neuronen</span> feuern Signale ab.
                       </span>
                     </li>
                     <li className="flex gap-2">
@@ -289,7 +289,7 @@ const App: React.FC = () => {
                     <li className="flex gap-2">
                       <span className="text-cyber-accent">●</span>
                       <span>
-                        <strong className="text-gray-200">Das Ziel:</strong> Das Netzwerk soll lernen, abstrakte Muster (wie die Form einer "3") zu erkennen.
+                        <strong className="text-gray-200">Das Ziel:</strong> Das Netzwerk soll lernen, <span className="text-cyber-accent">abstrakte Muster</span> (wie die Form einer "3") zu erkennen.
                       </span>
                     </li>
                   </ul>
@@ -304,7 +304,7 @@ const App: React.FC = () => {
                     <li className="flex gap-2">
                       <span className="text-cyber-accent">●</span>
                       <span>
-                        <strong className="text-gray-200">Layer (Schichten):</strong> Information fließt von links nach rechts durch mehrere Schichten.
+                        <strong className="text-gray-200">Layer (Schichten):</strong> Information fließt von links nach rechts durch mehrere <span className="text-cyber-accent">Schichten</span>.
                       </span>
                     </li>
                     <li className="flex gap-2">
@@ -332,7 +332,7 @@ const App: React.FC = () => {
                     <div className="pl-2 border-l-2 border-cyber-accent/30 space-y-2">
                       <div>
                         <span className="text-xs font-mono uppercase text-cyber-accent">Schicht 1</span>
-                        <br />Erkennt kleine Kanten und Linien-Abschnitte.
+                        <br />Erkennt kleine <span className="text-cyber-accent">Kanten</span> und Linien-Abschnitte.
                       </div>
                       <div>
                         <span className="text-xs font-mono uppercase text-cyber-accent">Schicht 2</span>
@@ -361,13 +361,13 @@ const App: React.FC = () => {
                     <li className="flex gap-2">
                       <span className="text-cyber-accent">●</span>
                       <span>
-                        <strong className="text-gray-200">Bias:</strong> Eine Art "Reizschwelle". Wann feuert das Neuron? Wird am Ende subtrahiert.
+                        <strong className="text-gray-200">Bias:</strong> Eine Art <span className="text-cyber-accent">"Reizschwelle"</span>. Wann feuert das Neuron? Wird am Ende subtrahiert.
                       </span>
                     </li>
                     <li className="flex gap-2">
                       <span className="text-cyber-accent">●</span>
                       <span>
-                        <strong className="text-gray-200">Sigmoid:</strong> Die Aktivierungsfunktion <span className="italic font-serif">σ(x)</span> wandelt beliebige Summen in Werte zwischen 0 und 1 um. Dies simuliert das "Feuern" eines biologischen Neurons (aktiv vs. inaktiv).
+                        <strong className="text-gray-200">Sigmoid:</strong> Die <span className="text-cyber-accent">Aktivierungsfunktion</span> <span className="italic font-serif">σ(x)</span> wandelt beliebige Summen in Werte zwischen 0 und 1 um. Dies simuliert das "Feuern" eines biologischen Neurons (aktiv vs. inaktiv).
                       </span>
                     </li>
                   </ul>
@@ -389,7 +389,7 @@ const App: React.FC = () => {
                   <div className="space-y-2">
                     <div className="text-cyber-accent font-bold uppercase text-xs tracking-widest">Schritt 1: Die Zutaten</div>
                     <p className="text-sm text-gray-300 leading-relaxed">
-                      Jeder Pixel (Input) ist eine Zutat. Die <strong className="text-white">Gewichte</strong> bestimmen, wie viel wir davon nehmen. Salz ist wichtig (positives Gewicht), Dreck wollen wir nicht (negatives Gewicht).
+                      Jeder Pixel (Input) ist eine Zutat. Die <strong className="text-white">Gewichte</strong> bestimmen, wie viel wir davon nehmen. Salz ist wichtig (<span className="text-cyber-accent">positives Gewicht</span>), Dreck wollen wir nicht (negatives Gewicht).
                     </p>
                   </div>
 
@@ -420,7 +420,7 @@ const App: React.FC = () => {
             <div>
               <div className="mb-6">
                 <h2 className="text-2xl text-white font-bold mb-2">Neurale Netze (Evolution)</h2>
-                <p className="text-gray-400">Beobachte, wie KI-Agenten über Generationen lernen, zu überleben und zu kämpfen.</p>
+                <p className="text-gray-400">Beobachte, wie KI-Agenten über <span className="text-cyber-accent">Generationen</span> lernen, zu überleben und zu kämpfen.</p>
               </div>
 
               {/* --- EDUCATIONAL CONTENT --- */}
@@ -480,7 +480,7 @@ const App: React.FC = () => {
                       <span className="text-cyber-accent mt-0.5">▸</span>
                       <div>
                         <strong className="text-gray-200 block">Iteratives Lernen:</strong>
-                        Die KI "lernt" nicht biologisch, sondern indem sie ihre Gewichte (Zahlen) nach und nach anpasst, um Fehler zu minimieren oder Belohnungen zu maximieren.
+                        Die KI "lernt" nicht biologisch, sondern indem sie ihre <span className="text-cyber-accent">Gewichte (Zahlen)</span> nach und nach anpasst, um Fehler zu minimieren oder Belohnungen zu maximieren.
                       </div>
                     </li>
                   </ul>
@@ -520,7 +520,7 @@ const App: React.FC = () => {
                     <p className="text-sm text-gray-300 leading-relaxed">
                       Diese Zahlen fließen durch das neuronale Netz.
                       <br /><br />
-                      In den <strong>Hidden Layers</strong> werden die Informationen verknüpft (z.B. "Gegner nah" + "Cooldown bereit" = "Gute Chance").
+                      In den <strong>Hidden Layers</strong> werden die Informationen verknüpft (z.B. "Gegner nah" + "Cooldown bereit" = "<span className="text-cyber-accent">Gute Chance</span>").
                     </p>
                   </div>
 
@@ -592,7 +592,7 @@ const App: React.FC = () => {
                       <li><strong>Fitness-Funktion:</strong> Belohnung für Treffer (+300), Strafe für Tod (-150)</li>
                       <li><strong>Selektion:</strong> Bester Agent überlebt und wird kopiert</li>
                       <li><strong>Mutation:</strong> Gewichte werden leicht zufällig verändert (Mutationsrate konfigurierbar)</li>
-                      <li><strong>Keine Backpropagation:</strong> Reines Trial-and-Error über Generationen</li>
+                      <li><strong>Keine Backpropagation:</strong> Reines <span className="text-cyber-accent">Trial-and-Error</span> über Generationen</li>
                     </ul>
                   </div>
                 </div>
@@ -603,7 +603,7 @@ const App: React.FC = () => {
                 <h3 className="text-lg text-cyber-accent font-bold mb-4">🧬 Wie lernt der Agent? (Evolution)</h3>
                 <div className="space-y-4 text-sm text-gray-400 leading-relaxed">
                   <p>
-                    Hier gibt es keinen Lehrer, der sagt "Das war falsch!". Stattdessen nutzen wir das Prinzip der <strong>Ameisen-Evolution</strong>:
+                    Hier gibt es keinen Lehrer, der sagt "Das war falsch!". Stattdessen nutzen wir das Prinzip der <strong className="text-cyber-accent">Ameisen-Evolution</strong>:
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
                     <div className="bg-black/40 p-3 rounded border border-cyber-border/20 text-center">
@@ -624,7 +624,7 @@ const App: React.FC = () => {
                     <div className="bg-black/40 p-3 rounded border border-cyber-border/20 text-center">
                       <div className="text-2xl mb-2">✨</div>
                       <div className="font-bold text-white mb-1">4. Mutation</div>
-                      <div className="text-xs">Die Kopie wird leicht verändert (Mutiert). Vielleicht ist der Neue etwas besser? Wenn ja ➜ Neuer Champion!</div>
+                      <div className="text-xs">Die Kopie wird leicht verändert (<span className="text-cyber-accent">Mutiert</span>). Vielleicht ist der Neue etwas besser? Wenn ja ➜ Neuer Champion!</div>
                     </div>
                   </div>
                 </div>

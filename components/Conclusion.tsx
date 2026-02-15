@@ -41,7 +41,7 @@ const Conclusion: React.FC = () => {
                     Fazit: Die Zukunft der Intelligenz
                 </h2>
                 <p className="text-gray-400 text-lg">
-                    Wohin führt uns die aktuelle Entwicklung? Um das Ausmaß der kommenden Veränderungen zu verstehen, müssen wir die Natur von exponentiellem Wachstum und die Qualität von Intelligenz betrachten.
+                    Wohin führt uns die aktuelle Entwicklung? Um das Ausmaß der kommenden Veränderungen zu verstehen, müssen wir die Natur von <span className="text-cyber-accent">exponentiellem Wachstum</span> und die Qualität von Intelligenz betrachten.
                 </p>
             </section>
 
@@ -127,14 +127,14 @@ const Conclusion: React.FC = () => {
                         <h4 className="text-white font-bold">Qualität vs. Geschwindigkeit</h4>
                         <p className="text-sm text-gray-400 leading-relaxed">
                             Der Unterschied zwischen uns und einem Schimpansen ist nicht die "Rechengeschwindigkeit". Es sind unsere <strong>kognitiven Module</strong>.
-                            Ein Schimpanse kann lernen, was ein Wolkenkratzer ist, aber er wird nie verstehen, dass Menschen diese gebaut haben. Unser Gehirn hat eine andere <strong>Intelligenz-Qualität</strong>.
+                            Ein Schimpanse kann lernen, was ein Wolkenkratzer ist, aber er wird nie verstehen, dass Menschen diese gebaut haben. Unser Gehirn hat eine andere <strong className="text-cyber-accent">Intelligenz-Qualität</strong>.
                         </p>
                     </div>
                     <div className="space-y-4">
                         <h4 className="text-white font-bold">Der Sprung zu ASI</h4>
                         <p className="text-sm text-gray-400 leading-relaxed">
-                            AGI (Artificial General Intelligence) wäre nur zwei Stufen über uns – dasselbe Verhältnis wie zwischen Mensch und Schimpanse.
-                            Sobald eine KI menschliches Niveau erreicht, beginnt die <strong>Intelligenz-Explosion</strong>. Sie verbessert sich selbst in Millisekunden.
+                            <span className="text-cyber-accent">AGI</span> (Artificial General Intelligence) wäre nur zwei Stufen über uns – dasselbe Verhältnis wie zwischen Mensch und Schimpanse.
+                            Sobald eine KI menschliches Niveau erreicht, beginnt die <strong className="text-cyber-accent">Intelligenz-Explosion</strong>. Sie verbessert sich selbst in Millisekunden.
                         </p>
                     </div>
                 </div>
@@ -252,8 +252,8 @@ const Conclusion: React.FC = () => {
 
                     <p className="text-[11px] text-gray-500 leading-tight">
                         {takeoffType === 'slow'
-                            ? "Der 'Slow Takeoff' vermutet eine stetige, aber kontrollierbare Entwicklung über Jahrzehnte nach Erreichen von AGI."
-                            : "Der 'Fast Takeoff' (Singularität) geht davon aus, dass ASI innerhalb von Minuten oder Stunden nach AGI entsteht."}
+                            ? "Der <span className='text-cyber-accent'>'Slow Takeoff'</span> vermutet eine stetige, aber kontrollierbare Entwicklung über Jahrzehnte nach Erreichen von AGI."
+                            : "Der <span className='text-red-500'>'Fast Takeoff' (Singularität)</span> geht davon aus, dass ASI innerhalb von Minuten oder Stunden nach AGI entsteht."}
                     </p>
                 </div>
             </section>

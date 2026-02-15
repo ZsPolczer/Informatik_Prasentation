@@ -54,7 +54,7 @@ export const BiasVisualizer: React.FC = () => {
                 Bias & Daten-Qualität
             </h3>
             <p className="text-sm text-gray-400 mb-6 max-w-2xl">
-                Eine KI ist nur so neutral wie ihre Trainingsdaten. Wenn man einer KI nur einseitige Meinungen "füttert", übernimmt sie diese Sichtweise als absolute Wahrheit.
+                Eine KI ist nur so <span className="text-cyber-accent">neutral</span> wie ihre Trainingsdaten. Wenn man einer KI nur einseitige Meinungen "füttert", übernimmt sie diese Sichtweise als absolute Wahrheit.
                 <br /><span className="text-cyber-accent text-xs mt-1 block">Simuliere das Training durch Klicken der Buttons unten:</span>
             </p>
 
@@ -149,7 +149,7 @@ export const BiasVisualizer: React.FC = () => {
                 ) : Math.abs(bias) > 0.2 ? (
                     <span className="text-red-400 ml-1">Bias erkannt! Das Modell tendiert stark in eine Richtung, weil ihm die Gegenperspektive fehlt. Es hält seine einseitige Sicht für die "Normalität".</span>
                 ) : (
-                    <span className="ml-1">Füttere das Modell mit Daten, um zu sehen, wie sich das "Weltbild" der KI formt.</span>
+                    <span className="ml-1">Füttere das Modell mit Daten, um zu sehen, wie sich das <span className="text-cyber-accent">"Weltbild"</span> der KI formt.</span>
                 )}
             </div>
 
