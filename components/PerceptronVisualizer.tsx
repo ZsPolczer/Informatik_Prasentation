@@ -125,7 +125,7 @@ export const PerceptronVisualizer: React.FC = () => {
                         Perzeptron Visualisierung
                     </h2>
                     <p className="text-gray-400 mt-2 text-sm font-mono uppercase tracking-wider">
-                        Wie eine KI einfache Muster erkennt und lernt.
+                        Wie eine KI einfachste <span className="text-cyber-accent">Muster</span> erkennt und lernt.
                     </p>
                 </header>
 
@@ -134,7 +134,7 @@ export const PerceptronVisualizer: React.FC = () => {
                 <div className="flex flex-col items-center justify-center mb-12 py-6 bg-black/20 rounded-xl border border-cyber-border/30">
                     <NetworkDiagram inputActive={inputGrid.some(v => v === 1)} prediction={prediction} />
                     <p className="text-[10px] text-gray-400 font-mono mt-4 text-center max-w-md italic">
-                        Interaktive Simulation: Wenn du links zeichnest, fließen Signale durch die Schichten (13.002 Parameter).
+                        Interaktive Simulation: Wenn du links zeichnest, fließen Signale durch die Schichten (<span className="text-cyber-accent">13.002 Parameter</span>).
                     </p>
                 </div>
 
@@ -175,7 +175,7 @@ export const PerceptronVisualizer: React.FC = () => {
                         </div>
 
                         <div className="w-full space-y-3">
-                            <div className="text-[10px] text-center text-gray-500 font-mono uppercase tracking-tighter">Korrektur: Was ist das wirklich?</div>
+                            <div className="text-[10px] text-center text-gray-500 font-mono uppercase tracking-tighter">Korrektur (Lernen): Was ist das wirklich?</div>
                             <div className="grid grid-cols-5 gap-2">
                                 {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => (
                                     <button
@@ -200,7 +200,7 @@ export const PerceptronVisualizer: React.FC = () => {
                     {/* RIGHT: WEIGHTS */}
                     <div className="flex flex-col items-center space-y-6 w-full max-w-[320px]">
                         <div className="w-full flex justify-between items-center mb-2">
-                            <span className="text-xs font-mono text-cyber-accent uppercase tracking-widest">Brain: Gewichte für "{currentlyViewing}"</span>
+                            <span className="text-xs font-mono text-cyber-accent uppercase tracking-widest">Brain: <span className="text-white">Gewichte</span> für "{currentlyViewing}"</span>
                             <div className="flex gap-2">
                                 <div className="flex items-center gap-1">
                                     <span className="w-2 h-2 rounded-full bg-cyber-accent"></span>
