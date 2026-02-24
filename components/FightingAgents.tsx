@@ -23,6 +23,7 @@ class SimpleNN {
   bias1: number[];
   weights2: number[][]; // Hidden -> Output
   bias2: number[];
+  fitness: number = 0; // Added for GA sorting
 
   constructor(copyFrom?: SimpleNN) {
     if (copyFrom) {
@@ -30,6 +31,7 @@ class SimpleNN {
       this.bias1 = [...copyFrom.bias1];
       this.weights2 = copyFrom.weights2.map(row => [...row]);
       this.bias2 = [...copyFrom.bias2];
+      this.fitness = copyFrom.fitness;
     } else {
       // Init random weights
       this.weights1 = Array(INPUT_SIZE).fill(0).map(() => Array(HIDDEN_SIZE).fill(0).map(() => Math.random() * 2 - 1));
@@ -42,9 +44,20 @@ class SimpleNN {
     }
   }
 
+  // Gaussian noise generation for smoother mutation
+  private randn_bm() {
+    let u = 0, v = 0;
+    while (u === 0) u = Math.random();
+    while (v === 0) v = Math.random();
+    return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+  }
+
   mutate(rate: number) {
     const mutateVal = (v: number) => {
-      if (Math.random() < rate) return v + (Math.random() * 2 - 1) * 0.5; // Small tweak
+      if (Math.random() < rate) {
+        // Gaussian noise mutation with variance 0.1
+        return v + this.randn_bm() * 0.1;
+      }
       if (Math.random() < 0.005) return Math.random() * 2 - 1; // Rare total reset
       return v;
     };
@@ -52,6 +65,26 @@ class SimpleNN {
     this.bias1 = this.bias1.map(mutateVal);
     this.weights2 = this.weights2.map(row => row.map(mutateVal));
     this.bias2 = this.bias2.map(mutateVal);
+  }
+
+  // Crossover with another parent
+  crossover(partner: SimpleNN): SimpleNN {
+    const child = new SimpleNN();
+
+    // Uniform crossover for each weight/bias
+    const mixVal = (v1: number, v2: number) => Math.random() > 0.5 ? v1 : v2;
+
+    child.weights1 = this.weights1.map((row, i) =>
+      row.map((val, j) => mixVal(val, partner.weights1[i][j]))
+    );
+    child.bias1 = this.bias1.map((val, i) => mixVal(val, partner.bias1[i]));
+
+    child.weights2 = this.weights2.map((row, i) =>
+      row.map((val, j) => mixVal(val, partner.weights2[i][j]))
+    );
+    child.bias2 = this.bias2.map((val, i) => mixVal(val, partner.bias2[i]));
+
+    return child;
   }
 
   predict(inputs: number[]): number[] {
@@ -162,6 +195,8 @@ const PRESET_TACTICAL = {
   })()
 };
 
+const POPULATION_SIZE = 50;
+
 // --- GAME STATE ---
 interface GameState {
   nnAgent: { x: number, y: number, angle: number, hp: number, cooldown: number, brain: SimpleNN };
@@ -170,11 +205,13 @@ interface GameState {
   obstacles: Obstacle[];
   frame: number;
   bestBrain: SimpleNN;
+  population: SimpleNN[]; // Proper GA population
   currentScore: number;
   generation: number;
   bestScore: number;
   nnWins: number;
   botWins: number;
+  botStrategy: 'AGGRESSIVE' | 'SNEAKY' | 'EVASIVE' | 'RANDOM';
 }
 
 
@@ -266,11 +303,13 @@ export const FightingAgents: React.FC = () => {
     ],
     frame: 0,
     bestBrain: new SimpleNN(),
+    population: Array(POPULATION_SIZE).fill(0).map(() => new SimpleNN()),
     currentScore: 0,
     generation: 1,
     bestScore: -Infinity,
     nnWins: 0,
-    botWins: 0
+    botWins: 0,
+    botStrategy: 'AGGRESSIVE' // Initial
   });
 
   const requestRef = useRef<number>(0);
@@ -281,7 +320,322 @@ export const FightingAgents: React.FC = () => {
     return rects.some(o => x > o.x - r && x < o.x + o.w + r && y > o.y - r && y < o.y + o.h + r);
   };
 
-  const updatePhysics = (s: GameState, fastMode: boolean) => {
+  const simulateRound = (brain: SimpleNN, s: GameState): number => {
+    // Clone necessary state for background sim
+    const simState = {
+      nnAgent: { x: 80, y: 80, angle: 0, hp: 100, cooldown: 0, brain },
+      botAgent: { ...s.botAgent, x: ARENA_WIDTH - 80, y: ARENA_HEIGHT - 80, angle: Math.PI, hp: 100, cooldown: 0, reactionTimer: 0 },
+      bullets: [] as Bullet[],
+      obstacles: s.obstacles,
+      frame: 0,
+      currentScore: 0,
+      botStrategy: s.botStrategy
+    };
+
+    let roundOver = false;
+    while (!roundOver && simState.frame <= MAX_FRAMES_PER_ROUND) {
+      simState.frame++;
+
+      // 1. SENSORS
+      const dx = simState.botAgent.x - simState.nnAgent.x;
+      const dy = simState.botAgent.y - simState.nnAgent.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const angleToEnemy = Math.atan2(dy, dx);
+      let relAngle = angleToEnemy - simState.nnAgent.angle;
+      while (relAngle > Math.PI) relAngle -= Math.PI * 2;
+      while (relAngle < -Math.PI) relAngle += Math.PI * 2;
+
+      let los = 1;
+      for (let i = 1; i <= 5; i++) {
+        if (checkCol(simState.nnAgent.x + dx * (i / 5), simState.nnAgent.y + dy * (i / 5), 2, simState.obstacles)) { los = 0; break; }
+      }
+
+      const castRayNN = (angOffset: number) => {
+        const rayLen = 150;
+        const steps = 10;
+        const ax = Math.cos(simState.nnAgent.angle + angOffset);
+        const ay = Math.sin(simState.nnAgent.angle + angOffset);
+        for (let i = 1; i <= steps; i++) {
+          const d = (i / steps) * rayLen;
+          if (checkCol(simState.nnAgent.x + ax * d, simState.nnAgent.y + ay * d, 5, simState.obstacles)) return 1.0 - (i / steps);
+        }
+        return 0.0;
+      };
+
+      const inputs = [
+        relAngle / Math.PI, dist / ARENA_WIDTH, los,
+        castRayNN(0), castRayNN(-0.5), castRayNN(0.5),
+        simState.nnAgent.cooldown / COOLDOWN, 1
+      ];
+
+      const [turn, move, shoot] = simState.nnAgent.brain.predict(inputs);
+
+      // 2. NN ACTIONS
+      simState.nnAgent.angle += turn * 0.15;
+      if (Math.abs(turn) > 0.8) simState.currentScore -= 0.5;
+      if (Math.abs(relAngle) < 0.2 && los === 1) simState.currentScore += 0.2;
+
+      let speed = 0;
+      if (move > 0) speed = AGENT_SPEED;
+      else if (move < -0.2) speed = -AGENT_SPEED * 0.5;
+
+      if (Math.abs(speed) > 0) {
+        const nx = simState.nnAgent.x + Math.cos(simState.nnAgent.angle) * speed;
+        const ny = simState.nnAgent.y + Math.sin(simState.nnAgent.angle) * speed;
+        if (!checkCol(nx, ny, AGENT_RADIUS, simState.obstacles)) {
+          simState.nnAgent.x = nx; simState.nnAgent.y = ny;
+          simState.currentScore += 0.05;
+        } else simState.currentScore -= 1.0;
+      } else simState.currentScore -= 0.01;
+
+      if (shoot > 0.0 && simState.nnAgent.cooldown <= 0) {
+        simState.bullets.push({
+          x: simState.nnAgent.x + Math.cos(simState.nnAgent.angle) * 20,
+          y: simState.nnAgent.y + Math.sin(simState.nnAgent.angle) * 20,
+          vx: Math.cos(simState.nnAgent.angle) * BULLET_SPEED,
+          vy: Math.sin(simState.nnAgent.angle) * BULLET_SPEED,
+          owner: 'NN', id: Math.random()
+        });
+        simState.nnAgent.cooldown = COOLDOWN;
+        if (Math.abs(relAngle) < 0.3 && los === 1) simState.currentScore += 15;
+        else simState.currentScore -= 2;
+      }
+      if (simState.nnAgent.cooldown > 0) simState.nnAgent.cooldown--;
+
+      // 3. BOT LOGIC
+      if (simState.botAgent.brain) {
+        const bBrain = simState.botAgent.brain;
+        const bDx = simState.nnAgent.x - simState.botAgent.x;
+        const bDy = simState.nnAgent.y - simState.botAgent.y;
+        const bDist = Math.sqrt(bDx * bDx + bDy * bDy);
+        const bAngleToEnemy = Math.atan2(bDy, bDx);
+        let bRelAngle = bAngleToEnemy - simState.botAgent.angle;
+        while (bRelAngle > Math.PI) bRelAngle -= Math.PI * 2;
+        while (bRelAngle < -Math.PI) bRelAngle += Math.PI * 2;
+
+        let bLos = 1;
+        for (let i = 1; i <= 5; i++) {
+          if (checkCol(simState.botAgent.x + bDx * (i / 5), simState.botAgent.y + bDy * (i / 5), 2, simState.obstacles)) { bLos = 0; break; }
+        }
+
+        const castRayBot = (angOffset: number) => {
+          const rayLen = 150;
+          const steps = 10;
+          const ax = Math.cos(simState.botAgent.angle + angOffset);
+          const ay = Math.sin(simState.botAgent.angle + angOffset);
+          for (let i = 1; i <= steps; i++) {
+            const d = (i / steps) * rayLen;
+            if (checkCol(simState.botAgent.x + ax * d, simState.botAgent.y + ay * d, 5, simState.obstacles)) return 1.0 - (i / steps);
+          }
+          return 0.0;
+        };
+
+        const bInputs = [
+          bRelAngle / Math.PI, bDist / ARENA_WIDTH, bLos,
+          castRayBot(0), castRayBot(-0.5), castRayBot(0.5),
+          simState.botAgent.cooldown / COOLDOWN, 1
+        ];
+
+        const [bTurn, bMove, bShoot] = bBrain.predict(bInputs);
+
+        simState.botAgent.angle += bTurn * 0.15;
+        let bSpeed = 0;
+        if (bMove > 0) bSpeed = AGENT_SPEED;
+        else if (bMove < -0.2) bSpeed = -AGENT_SPEED * 0.5;
+
+        if (Math.abs(bSpeed) > 0) {
+          const nx = simState.botAgent.x + Math.cos(simState.botAgent.angle) * bSpeed;
+          const ny = simState.botAgent.y + Math.sin(simState.botAgent.angle) * bSpeed;
+          if (!checkCol(nx, ny, AGENT_RADIUS, simState.obstacles)) { simState.botAgent.x = nx; simState.botAgent.y = ny; }
+        }
+
+        if (bShoot > 0.0 && simState.botAgent.cooldown <= 0) {
+          simState.bullets.push({
+            x: simState.botAgent.x + Math.cos(simState.botAgent.angle) * 20,
+            y: simState.botAgent.y + Math.sin(simState.botAgent.angle) * 20,
+            vx: Math.cos(simState.botAgent.angle) * BULLET_SPEED,
+            vy: Math.sin(simState.botAgent.angle) * BULLET_SPEED,
+            owner: 'BOT', id: Math.random()
+          });
+          simState.botAgent.cooldown = COOLDOWN;
+        }
+      } else {
+        // --- HARDCODED BOT LOGIC (Fallback) ---
+        const bDx = simState.nnAgent.x - simState.botAgent.x;
+        const bDy = simState.nnAgent.y - simState.botAgent.y;
+        const bDist = Math.sqrt(bDx * bDx + bDy * bDy);
+        const bAngle = Math.atan2(bDy, bDx);
+
+        let targetAngle = bAngle;
+        let bSpeed = 0;
+        let wantsToShoot = false;
+
+        if (simState.botStrategy === 'AGGRESSIVE') {
+          // Chase relentlessly, shoot often
+          targetAngle = bAngle;
+          bSpeed = AGENT_SPEED * 0.8;
+          if (bDist < 100) bSpeed = -AGENT_SPEED * 0.2; // slight back off if too close
+          if (Math.abs(bAngle - simState.botAgent.angle) < 0.5) wantsToShoot = true;
+
+        } else if (simState.botStrategy === 'SNEAKY') {
+          // Try to move to the bottom edge then flank up, shoot only when close
+          if (simState.frame < 300) {
+            // Phase 1: Go to bottom edge
+            targetAngle = Math.PI / 2; // Point down
+            if (simState.botAgent.y > ARENA_HEIGHT - 50) {
+              targetAngle = Math.PI; // point left along bottom
+            }
+            bSpeed = AGENT_SPEED;
+          } else {
+            // Phase 2: Attack
+            targetAngle = bAngle;
+            if (bDist > 200) bSpeed = AGENT_SPEED * 0.9;
+            else bSpeed = AGENT_SPEED * 0.4;
+            if (bDist < 250 && Math.abs(bAngle - simState.botAgent.angle) < 0.3) wantsToShoot = true;
+          }
+
+        } else if (simState.botStrategy === 'EVASIVE') {
+          // Run away, occasionally turn to shoot defensively
+          if (bDist < 300) {
+            targetAngle = bAngle + Math.PI; // Point away
+            bSpeed = AGENT_SPEED * 0.9;
+            if (Math.random() < 0.05) wantsToShoot = true; // Panic fire
+          } else {
+            targetAngle = bAngle;
+            bSpeed = AGENT_SPEED * 0.2; // hold position
+            if (Math.abs(bAngle - simState.botAgent.angle) < 0.2) wantsToShoot = true; // sniper shot
+          }
+        } else {
+          // RANDOM (Original jittery logic)
+          if (Math.random() < 0.05) simState.botAgent.reactionTimer += (Math.random() * 20 - 10);
+          targetAngle += (simState.botAgent.reactionTimer * 0.01);
+          if (Math.random() < 0.02) {
+            bSpeed = (Math.random() > 0.5 ? 1 : -1) * AGENT_SPEED * 0.8;
+            simState.botAgent.angle += Math.PI / 2;
+          } else if (bDist > 300) bSpeed = AGENT_SPEED * 0.6;
+          else if (bDist < 100) bSpeed = -AGENT_SPEED * 0.5;
+          else if (Math.random() < 0.1) bSpeed = AGENT_SPEED * (Math.random() * 0.5 - 0.25);
+
+          if (Math.abs(targetAngle - simState.botAgent.angle) < 0.3 && bDist < 450) wantsToShoot = true;
+          if (Math.random() < 0.01) wantsToShoot = true;
+        }
+
+        let bRelAngle = targetAngle - simState.botAgent.angle;
+        while (bRelAngle > Math.PI) bRelAngle -= Math.PI * 2;
+        while (bRelAngle < -Math.PI) bRelAngle += Math.PI * 2;
+
+        simState.botAgent.angle += bRelAngle * 0.15;
+
+        if (Math.abs(bSpeed) > 0.1) {
+          const nx = simState.botAgent.x + Math.cos(simState.botAgent.angle) * bSpeed;
+          const ny = simState.botAgent.y + Math.sin(simState.botAgent.angle) * bSpeed;
+          if (!checkCol(nx, ny, AGENT_RADIUS, simState.obstacles)) { simState.botAgent.x = nx; simState.botAgent.y = ny; }
+        }
+
+        if (wantsToShoot && simState.botAgent.cooldown <= 0) {
+          let clearShot = true;
+          for (let i = 1; i < 5; i++) { if (checkCol(simState.botAgent.x + bDx * (i / 5), simState.botAgent.y + bDy * (i / 5), 2, simState.obstacles)) clearShot = false; }
+
+          if (clearShot || simState.botStrategy === 'AGGRESSIVE') { // Aggressive fires anyway
+            simState.bullets.push({
+              x: simState.botAgent.x + Math.cos(simState.botAgent.angle) * 20,
+              y: simState.botAgent.y + Math.sin(simState.botAgent.angle) * 20,
+              vx: Math.cos(simState.botAgent.angle) * BULLET_SPEED,
+              vy: Math.sin(simState.botAgent.angle) * BULLET_SPEED,
+              owner: 'BOT', id: Math.random()
+            });
+            simState.botAgent.cooldown = COOLDOWN * (simState.botStrategy === 'AGGRESSIVE' ? 1.2 : 1.5);
+          }
+        }
+      }
+      if (simState.botAgent.cooldown > 0) simState.botAgent.cooldown--;
+
+      // 4. BULLETS & HITS
+      for (let i = simState.bullets.length - 1; i >= 0; i--) {
+        const b = simState.bullets[i];
+        b.x += b.vx; b.y += b.vy;
+
+        if (b.x < 0 || b.x > ARENA_WIDTH || b.y < 0 || b.y > ARENA_HEIGHT) { simState.bullets.splice(i, 1); continue; }
+        if (simState.obstacles.some(o => b.x > o.x && b.x < o.x + o.w && b.y > o.y && b.y < o.y + o.h)) { simState.bullets.splice(i, 1); continue; }
+
+        const hitNN = (b.owner === 'BOT') && Math.hypot(b.x - simState.nnAgent.x, b.y - simState.nnAgent.y) < AGENT_RADIUS + 5;
+        const hitBot = (b.owner === 'NN') && Math.hypot(b.x - simState.botAgent.x, b.y - simState.botAgent.y) < AGENT_RADIUS + 5;
+
+        if (hitNN) {
+          simState.nnAgent.hp -= 20;
+          simState.currentScore -= 150;
+          simState.bullets.splice(i, 1);
+        } else if (hitBot) {
+          simState.botAgent.hp -= 20;
+          simState.currentScore += 300;
+          simState.bullets.splice(i, 1);
+        }
+      }
+
+      if (simState.nnAgent.hp <= 0) roundOver = true;
+      else if (simState.botAgent.hp <= 0) { roundOver = true; simState.currentScore += 1000; }
+      else if (simState.frame >= MAX_FRAMES_PER_ROUND) { roundOver = true; simState.currentScore -= 500; }
+    }
+
+    return simState.currentScore;
+  };
+
+  const evaluateAgent = (brain: SimpleNN, s: GameState): number => {
+    // Run n rounds and average fitness to smooth noise
+    const rounds = 3;
+    let totalScore = 0;
+    for (let i = 0; i < rounds; i++) {
+      totalScore += simulateRound(brain, s);
+    }
+    return totalScore / rounds;
+  };
+
+  const evolvePopulation = (s: GameState, rate: number) => {
+    // 1. Evaluate all agents in background
+    s.population.forEach(brain => {
+      brain.fitness = evaluateAgent(brain, s);
+    });
+
+    // 2. Sort descending by fitness
+    s.population.sort((a, b) => b.fitness - a.fitness);
+
+    // Keep best agent over all history
+    if (s.population[0].fitness > s.bestScore) {
+      s.bestScore = s.population[0].fitness;
+      s.bestBrain = new SimpleNN(s.population[0]);
+    }
+
+    const nextGen: SimpleNN[] = [];
+
+    // 3. Keep Elite 20%
+    const eliteCount = Math.floor(POPULATION_SIZE * 0.2);
+    const elites = s.population.slice(0, eliteCount);
+    elites.forEach(e => nextGen.push(new SimpleNN(e)));
+
+    // 4. Mutated Elites 30%
+    const mutatedCount = Math.floor(POPULATION_SIZE * 0.3);
+    for (let i = 0; i < mutatedCount; i++) {
+      const randElite = elites[Math.floor(Math.random() * elites.length)];
+      const mutatedBaby = new SimpleNN(randElite);
+      mutatedBaby.mutate(rate);
+      nextGen.push(mutatedBaby);
+    }
+
+    // 5. Crossover 50%
+    while (nextGen.length < POPULATION_SIZE) {
+      const p1 = elites[Math.floor(Math.random() * elites.length)];
+      const p2 = elites[Math.floor(Math.random() * elites.length)];
+      const child = p1.crossover(p2);
+      child.mutate(rate);
+      nextGen.push(child);
+    }
+
+    s.population = nextGen;
+    s.generation++;
+  };
+
+  const updatePhysics = (s: GameState, isFastSim: boolean) => {
+    // UPDATE PHYSICS FOR SHOWCASE ROUND
     s.frame++;
 
     // 1. SENSORS
@@ -333,15 +687,9 @@ export const FightingAgents: React.FC = () => {
     // 2. NN ACTIONS
     s.nnAgent.angle += turn * 0.15; // Limit turn speed
 
-    // REWARD/PUNISHMENT LOGIC
-
-    // Penalize spinning endlessly (if turn is consistently high)
-    if (Math.abs(turn) > 0.8) s.currentScore -= 0.5; // Increased penalty
-
-    // Reward facing the enemy (Aiming)
-    if (Math.abs(relAngle) < 0.2 && los === 1) {
-      s.currentScore += 0.2; // Continuous reward for good aim
-    }
+    // REWARD/PUNISHMENT LOGIC (Used for Showcase stats only now)
+    if (Math.abs(turn) > 0.8) s.currentScore -= 0.5;
+    if (Math.abs(relAngle) < 0.2 && los === 1) s.currentScore += 0.2;
 
     // Move
     let speed = 0;
@@ -460,15 +808,61 @@ export const FightingAgents: React.FC = () => {
       const bDy = s.nnAgent.y - s.botAgent.y;
       const bDist = Math.sqrt(bDx * bDx + bDy * bDy);
       const bAngle = Math.atan2(bDy, bDx);
-      let bRelAngle = bAngle - s.botAgent.angle;
+
+      let targetAngle = bAngle;
+      let bSpeed = 0;
+      let wantsToShoot = false;
+
+      if (s.botStrategy === 'AGGRESSIVE') {
+        targetAngle = bAngle;
+        bSpeed = AGENT_SPEED * 0.8;
+        if (bDist < 100) bSpeed = -AGENT_SPEED * 0.2;
+        if (Math.abs(bAngle - s.botAgent.angle) < 0.5) wantsToShoot = true;
+
+      } else if (s.botStrategy === 'SNEAKY') {
+        if (s.frame < 300) {
+          targetAngle = Math.PI / 2; // Point down
+          if (s.botAgent.y > ARENA_HEIGHT - 50) {
+            targetAngle = Math.PI; // point left along bottom
+          }
+          bSpeed = AGENT_SPEED;
+        } else {
+          targetAngle = bAngle;
+          if (bDist > 200) bSpeed = AGENT_SPEED * 0.9;
+          else bSpeed = AGENT_SPEED * 0.4;
+          if (bDist < 250 && Math.abs(bAngle - s.botAgent.angle) < 0.3) wantsToShoot = true;
+        }
+
+      } else if (s.botStrategy === 'EVASIVE') {
+        if (bDist < 300) {
+          targetAngle = bAngle + Math.PI; // Point away to run
+          bSpeed = AGENT_SPEED * 0.9;
+          if (Math.random() < 0.05) wantsToShoot = true; // Panic fire
+        } else {
+          targetAngle = bAngle;
+          bSpeed = AGENT_SPEED * 0.2; // hold position
+          if (Math.abs(bAngle - s.botAgent.angle) < 0.2) wantsToShoot = true; // sniper shot
+        }
+      } else {
+        // RANDOM
+        if (Math.random() < 0.05) s.botAgent.reactionTimer += (Math.random() * 20 - 10);
+        targetAngle += (s.botAgent.reactionTimer * 0.01);
+        if (Math.random() < 0.02) {
+          bSpeed = (Math.random() > 0.5 ? 1 : -1) * AGENT_SPEED * 0.8;
+          s.botAgent.angle += Math.PI / 2;
+        } else if (bDist > 300) bSpeed = AGENT_SPEED * 0.6;
+        else if (bDist < 100) bSpeed = -AGENT_SPEED * 0.5;
+        else if (Math.random() < 0.1) bSpeed = AGENT_SPEED * (Math.random() * 0.5 - 0.25);
+
+        if (Math.abs(targetAngle - s.botAgent.angle) < 0.3 && bDist < 450) wantsToShoot = true;
+        if (Math.random() < 0.01) wantsToShoot = true;
+      }
+
+      let bRelAngle = targetAngle - s.botAgent.angle;
       while (bRelAngle > Math.PI) bRelAngle -= Math.PI * 2;
       while (bRelAngle < -Math.PI) bRelAngle += Math.PI * 2;
 
-      s.botAgent.angle += bRelAngle * 0.1;
-
-      let bSpeed = 0;
-      if (bDist > 300) bSpeed = AGENT_SPEED * 0.6; // Chase slowly
-      else if (bDist < 100) bSpeed = -AGENT_SPEED * 0.5; // Back up
+      s.botAgent.angle += bRelAngle * 0.15;
 
       if (Math.abs(bSpeed) > 0.1) {
         const nx = s.botAgent.x + Math.cos(s.botAgent.angle) * bSpeed;
@@ -476,36 +870,20 @@ export const FightingAgents: React.FC = () => {
         if (!checkCol(nx, ny, AGENT_RADIUS, s.obstacles)) { s.botAgent.x = nx; s.botAgent.y = ny; }
       }
 
-      if (Math.abs(bRelAngle) < 0.3 && s.botAgent.cooldown <= 0 && bDist < 450) {
+      if (wantsToShoot && s.botAgent.cooldown <= 0) {
         let clearShot = true;
         for (let i = 1; i < 5; i++) { if (checkCol(s.botAgent.x + bDx * (i / 5), s.botAgent.y + bDy * (i / 5), 2, s.obstacles)) clearShot = false; }
 
-        if (clearShot) {
-          // If seeing enemy for first time, set reaction delay
-          if (s.botAgent.reactionTimer === 0) {
-            s.botAgent.reactionTimer = Math.floor(Math.random() * 6) + 6; // 6-12 frames (~100-200ms)
-          } else {
-            s.botAgent.reactionTimer--;
-
-            // Ready to fire?
-            if (s.botAgent.reactionTimer <= 1) {
-              s.bullets.push({
-                x: s.botAgent.x + Math.cos(s.botAgent.angle) * 20,
-                y: s.botAgent.y + Math.sin(s.botAgent.angle) * 20,
-                vx: Math.cos(s.botAgent.angle) * BULLET_SPEED,
-                vy: Math.sin(s.botAgent.angle) * BULLET_SPEED,
-                owner: 'BOT',
-                id: Math.random()
-              });
-              s.botAgent.cooldown = COOLDOWN * 1.5;
-              s.botAgent.reactionTimer = 0; // Reset
-            }
-          }
-        } else {
-          s.botAgent.reactionTimer = 0; // Lost LoS, reset timer
+        if (clearShot || s.botStrategy === 'AGGRESSIVE') {
+          s.bullets.push({
+            x: s.botAgent.x + Math.cos(s.botAgent.angle) * 20,
+            y: s.botAgent.y + Math.sin(s.botAgent.angle) * 20,
+            vx: Math.cos(s.botAgent.angle) * BULLET_SPEED,
+            vy: Math.sin(s.botAgent.angle) * BULLET_SPEED,
+            owner: 'BOT', id: Math.random()
+          });
+          s.botAgent.cooldown = COOLDOWN * (s.botStrategy === 'AGGRESSIVE' ? 1.2 : 1.5);
         }
-      } else {
-        s.botAgent.reactionTimer = 0; // Not aiming/in range, reset timer
       }
     }
     if (s.botAgent.cooldown > 0) s.botAgent.cooldown--;
@@ -535,34 +913,35 @@ export const FightingAgents: React.FC = () => {
 
     // 5. ROUND END
     let roundOver = false;
-    let success = false;
 
-    if (s.nnAgent.hp <= 0) { roundOver = true; success = false; s.botWins++; }
-    else if (s.botAgent.hp <= 0) { roundOver = true; success = true; s.nnWins++; s.currentScore += 1000; }
+    if (s.nnAgent.hp <= 0) { roundOver = true; s.botWins++; }
+    else if (s.botAgent.hp <= 0) { roundOver = true; s.nnWins++; s.currentScore += 1000; }
     else if (s.frame > MAX_FRAMES_PER_ROUND) {
       roundOver = true;
-      success = false;
-      s.currentScore -= 500; // PENATLY FOR TIMEOUT to discourage hiding
+      s.currentScore -= 500; // PENALTY FOR TIMEOUT
     }
 
     if (roundOver) {
-      // Did we do better?
-      if (success || s.currentScore > s.bestScore) {
-        s.bestScore = s.currentScore;
-        s.bestBrain = new SimpleNN(s.nnAgent.brain); // Save
-      }
+      // Evolve population behind the scenes
+      evolvePopulation(s, paramsRef.current.mutationRate);
 
-      // Reset
+      // Pick a new random strategy for the next round
+      const strategies: ('AGGRESSIVE' | 'SNEAKY' | 'EVASIVE' | 'RANDOM')[] = ['AGGRESSIVE', 'SNEAKY', 'EVASIVE', 'RANDOM'];
+      s.botStrategy = strategies[Math.floor(Math.random() * strategies.length)];
+
+      // Reset Match for next Showcase Round
       s.nnAgent.x = 80; s.nnAgent.y = 80; s.nnAgent.angle = 0; s.nnAgent.hp = 100; s.nnAgent.cooldown = 0;
       s.botAgent.x = ARENA_WIDTH - 80; s.botAgent.y = ARENA_HEIGHT - 80; s.botAgent.angle = Math.PI; s.botAgent.hp = 100; s.botAgent.cooldown = 0; s.botAgent.reactionTimer = 0;
       s.bullets = [];
       s.frame = 0;
       s.currentScore = 0;
-      s.generation++;
 
-      // New Brain from Best Brain + Mutation
-      s.nnAgent.brain = new SimpleNN(s.bestBrain);
-      s.nnAgent.brain.mutate(paramsRef.current.mutationRate); // Use REF for latest rate
+      // USE GEN BEST FOR SHOWCASE
+      s.nnAgent.brain = new SimpleNN(s.population[0]);
+
+      // Ensure React UI updates
+      setDisplayGen(s.generation);
+      setDisplayScore(Math.floor(s.bestScore));
     }
 
     return roundOver;
@@ -576,17 +955,23 @@ export const FightingAgents: React.FC = () => {
       const target = s.generation + simGenerations;
       const startT = performance.now();
 
-      // Simulation Loop
+      // Background Fast Forward Loop
       while (s.generation < target) {
-        const roundResult = updatePhysics(s, true);
-        // If stuck in a round too long, break round
-        if (s.frame > MAX_FRAMES_PER_ROUND + 10) {
-          // Force round end
-          s.frame = MAX_FRAMES_PER_ROUND + 1;
-          updatePhysics(s, true);
-        }
+        evolvePopulation(s, paramsRef.current.mutationRate);
         if (performance.now() - startT > 2000) break; // Safety
       }
+
+      // Pick a new strategy for the fast forwarded next round
+      const strategies: ('AGGRESSIVE' | 'SNEAKY' | 'EVASIVE' | 'RANDOM')[] = ['AGGRESSIVE', 'SNEAKY', 'EVASIVE', 'RANDOM'];
+      s.botStrategy = strategies[Math.floor(Math.random() * strategies.length)];
+
+      // Reset Match for immediate showing
+      s.nnAgent.x = 80; s.nnAgent.y = 80; s.nnAgent.angle = 0; s.nnAgent.hp = 100; s.nnAgent.cooldown = 0;
+      s.botAgent.x = ARENA_WIDTH - 80; s.botAgent.y = ARENA_HEIGHT - 80; s.botAgent.angle = Math.PI; s.botAgent.hp = 100; s.botAgent.cooldown = 0; s.botAgent.reactionTimer = 0;
+      s.bullets = [];
+      s.frame = 0;
+      s.currentScore = 0;
+      s.nnAgent.brain = new SimpleNN(s.population[0]);
 
       setDisplayGen(s.generation);
       setDisplayScore(Math.floor(s.bestScore));
