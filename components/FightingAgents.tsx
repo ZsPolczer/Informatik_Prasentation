@@ -191,6 +191,8 @@ export const FightingAgents: React.FC = () => {
   const [savedAgents, setSavedAgents] = useState<string[]>([]);
   const [blueName, setBlueName] = useState<string>('Random AI');
   const [redName, setRedName] = useState<string>('Standard Bot');
+  const [displayBlueWins, setDisplayBlueWins] = useState(0);
+  const [displayRedWins, setDisplayRedWins] = useState(0);
 
   // Load saved agents on mount
   useEffect(() => {
@@ -300,6 +302,8 @@ export const FightingAgents: React.FC = () => {
     state.current.botWins = 0;
     setDisplayGen(1);
     setDisplayScore(0);
+    setDisplayBlueWins(0);
+    setDisplayRedWins(0);
     setBlueName('Random AI');
   };
 
@@ -700,9 +704,11 @@ export const FightingAgents: React.FC = () => {
         ctx.beginPath(); ctx.arc(b.x, b.y, 4, 0, Math.PI * 2); ctx.fill();
       });
 
-      if (isSimulating) { // This wont update correctly due to closure unless we check ref
-        // handled by overlay below
-      }
+      // Sync win counts to React state for live scoreboard updates
+      setDisplayBlueWins(s.nnWins);
+      setDisplayRedWins(s.botWins);
+      setDisplayGen(s.generation);
+      setDisplayScore(Math.floor(s.bestScore));
 
       requestRef.current = requestAnimationFrame(render);
     };
@@ -778,7 +784,7 @@ export const FightingAgents: React.FC = () => {
           <div className="flex-1 bg-[#00f2ff]/5 border border-[#00f2ff]/30 rounded-lg p-3 text-center">
             <div className="text-[9px] text-[#00f2ff] uppercase font-mono tracking-widest mb-1">🔵 BLUE</div>
             <div className="text-sm text-[#00f2ff] font-bold truncate mb-1">{blueName}</div>
-            <div className="text-3xl text-white font-mono font-black">{state.current.nnWins}</div>
+            <div className="text-3xl text-white font-mono font-black">{displayBlueWins}</div>
           </div>
 
           {/* VS Divider */}
@@ -790,7 +796,7 @@ export const FightingAgents: React.FC = () => {
           <div className="flex-1 bg-[#ff0055]/5 border border-[#ff0055]/30 rounded-lg p-3 text-center">
             <div className="text-[9px] text-[#ff0055] uppercase font-mono tracking-widest mb-1">🔴 RED</div>
             <div className="text-sm text-[#ff0055] font-bold truncate mb-1">{redName}</div>
-            <div className="text-3xl text-white font-mono font-black">{state.current.botWins}</div>
+            <div className="text-3xl text-white font-mono font-black">{displayRedWins}</div>
           </div>
         </div>
 
