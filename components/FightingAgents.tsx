@@ -602,9 +602,26 @@ export const FightingAgents: React.FC = () => {
         s.bestBrain = new SimpleNN(s.nnAgent.brain); // Save
       }
 
-      // Reset
-      s.nnAgent.x = 80; s.nnAgent.y = 80; s.nnAgent.angle = 0; s.nnAgent.hp = 100; s.nnAgent.cooldown = 0;
-      s.botAgent.x = ARENA_WIDTH - 80; s.botAgent.y = ARENA_HEIGHT - 80; s.botAgent.angle = Math.PI; s.botAgent.hp = 100; s.botAgent.cooldown = 0; s.botAgent.reactionTimer = 0;
+      // Reset with randomized spawn positions (position-independent training)
+      const spawnAgent = () => {
+        let x, y, attempts = 0;
+        do {
+          x = 50 + Math.random() * (ARENA_WIDTH - 100);
+          y = 50 + Math.random() * (ARENA_HEIGHT - 100);
+          attempts++;
+        } while (checkCol(x, y, AGENT_RADIUS + 10, s.obstacles) && attempts < 50);
+        return { x, y, angle: Math.random() * Math.PI * 2 };
+      };
+      const spawn1 = spawnAgent();
+      let spawn2 = spawnAgent();
+      // Ensure minimum distance between agents
+      let retries = 0;
+      while (Math.hypot(spawn1.x - spawn2.x, spawn1.y - spawn2.y) < 150 && retries < 30) {
+        spawn2 = spawnAgent();
+        retries++;
+      }
+      s.nnAgent.x = spawn1.x; s.nnAgent.y = spawn1.y; s.nnAgent.angle = spawn1.angle; s.nnAgent.hp = 100; s.nnAgent.cooldown = 0;
+      s.botAgent.x = spawn2.x; s.botAgent.y = spawn2.y; s.botAgent.angle = spawn2.angle; s.botAgent.hp = 100; s.botAgent.cooldown = 0; s.botAgent.reactionTimer = 0;
       s.bullets = [];
       s.frame = 0;
       s.currentScore = 0;
