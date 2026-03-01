@@ -602,26 +602,19 @@ export const FightingAgents: React.FC = () => {
         s.bestBrain = new SimpleNN(s.nnAgent.brain); // Save
       }
 
-      // Reset with randomized spawn positions (position-independent training)
-      const spawnAgent = () => {
-        let x, y, attempts = 0;
-        do {
-          x = 50 + Math.random() * (ARENA_WIDTH - 100);
-          y = 50 + Math.random() * (ARENA_HEIGHT - 100);
-          attempts++;
-        } while (checkCol(x, y, AGENT_RADIUS + 10, s.obstacles) && attempts < 50);
-        return { x, y, angle: Math.random() * Math.PI * 2 };
-      };
-      const spawn1 = spawnAgent();
-      let spawn2 = spawnAgent();
-      // Ensure minimum distance between agents
-      let retries = 0;
-      while (Math.hypot(spawn1.x - spawn2.x, spawn1.y - spawn2.y) < 150 && retries < 30) {
-        spawn2 = spawnAgent();
-        retries++;
-      }
-      s.nnAgent.x = spawn1.x; s.nnAgent.y = spawn1.y; s.nnAgent.angle = spawn1.angle; s.nnAgent.hp = 100; s.nnAgent.cooldown = 0;
-      s.botAgent.x = spawn2.x; s.botAgent.y = spawn2.y; s.botAgent.angle = spawn2.angle; s.botAgent.hp = 100; s.botAgent.cooldown = 0; s.botAgent.reactionTimer = 0;
+      // Reset with corner-based spawn (4 corners, random each round)
+      const CORNERS = [
+        { x: 80, y: 80, angle: Math.atan2(ARENA_HEIGHT / 2 - 80, ARENA_WIDTH / 2 - 80) },           // Top-Left → faces center
+        { x: ARENA_WIDTH - 80, y: 80, angle: Math.atan2(ARENA_HEIGHT / 2 - 80, ARENA_WIDTH / 2 - (ARENA_WIDTH - 80)) },  // Top-Right → faces center
+        { x: 80, y: ARENA_HEIGHT - 80, angle: Math.atan2(ARENA_HEIGHT / 2 - (ARENA_HEIGHT - 80), ARENA_WIDTH / 2 - 80) }, // Bottom-Left → faces center
+        { x: ARENA_WIDTH - 80, y: ARENA_HEIGHT - 80, angle: Math.atan2(ARENA_HEIGHT / 2 - (ARENA_HEIGHT - 80), ARENA_WIDTH / 2 - (ARENA_WIDTH - 80)) }, // Bottom-Right → faces center
+      ];
+      // Pick two different corners
+      const shuffled = [...CORNERS].sort(() => Math.random() - 0.5);
+      const c1 = shuffled[0];
+      const c2 = shuffled[1];
+      s.nnAgent.x = c1.x; s.nnAgent.y = c1.y; s.nnAgent.angle = c1.angle; s.nnAgent.hp = 100; s.nnAgent.cooldown = 0;
+      s.botAgent.x = c2.x; s.botAgent.y = c2.y; s.botAgent.angle = c2.angle; s.botAgent.hp = 100; s.botAgent.cooldown = 0; s.botAgent.reactionTimer = 0;
       s.bullets = [];
       s.frame = 0;
       s.currentScore = 0;
@@ -777,23 +770,40 @@ export const FightingAgents: React.FC = () => {
         </div>
       </div>
 
-      {/* HUD */}
-      <div className="grid grid-cols-4 gap-4 mb-4">
-        <div className="bg-black/40 p-2 rounded border border-gray-800 text-center">
-          <div className="text-[9px] text-gray-500 uppercase font-mono">Generation</div>
-          <div className="text-xl text-white font-mono font-bold animate-pulse">{displayGen}</div>
+      {/* SCOREBOARD */}
+      <div className="mb-4">
+        {/* Main Battle Score */}
+        <div className="flex items-stretch gap-2 mb-2">
+          {/* Blue Agent */}
+          <div className="flex-1 bg-[#00f2ff]/5 border border-[#00f2ff]/30 rounded-lg p-3 text-center">
+            <div className="text-[9px] text-[#00f2ff] uppercase font-mono tracking-widest mb-1">🔵 BLUE</div>
+            <div className="text-sm text-[#00f2ff] font-bold truncate mb-1">{blueName}</div>
+            <div className="text-3xl text-white font-mono font-black">{state.current.nnWins}</div>
+          </div>
+
+          {/* VS Divider */}
+          <div className="flex flex-col items-center justify-center px-2">
+            <div className="text-gray-600 font-black text-lg">VS</div>
+          </div>
+
+          {/* Red Agent */}
+          <div className="flex-1 bg-[#ff0055]/5 border border-[#ff0055]/30 rounded-lg p-3 text-center">
+            <div className="text-[9px] text-[#ff0055] uppercase font-mono tracking-widest mb-1">🔴 RED</div>
+            <div className="text-sm text-[#ff0055] font-bold truncate mb-1">{redName}</div>
+            <div className="text-3xl text-white font-mono font-black">{state.current.botWins}</div>
+          </div>
         </div>
-        <div className="bg-black/40 p-2 rounded border border-gray-800 text-center">
-          <div className="text-[9px] text-gray-500 uppercase font-mono">High Score</div>
-          <div className="text-xl text-yellow-400 font-mono font-bold">{displayScore.toFixed(0)}</div>
-        </div>
-        <div className="bg-black/40 p-2 rounded border border-gray-800 text-center">
-          <div className="text-[9px] text-gray-500 uppercase font-mono">Bot Wins</div>
-          <div className="text-xl text-[#ff0055] font-mono font-bold">{state.current.botWins}</div>
-        </div>
-        <div className="bg-black/40 p-2 rounded border border-cyber-border/50 text-center">
-          <div className="text-[9px] text-gray-500 uppercase font-mono">AI Wins</div>
-          <div className="text-xl text-cyber-accent font-mono font-bold">{state.current.nnWins}</div>
+
+        {/* Training Stats (smaller row below) */}
+        <div className="grid grid-cols-2 gap-2">
+          <div className="bg-black/40 p-2 rounded border border-gray-800 text-center">
+            <div className="text-[9px] text-gray-500 uppercase font-mono">Generation</div>
+            <div className="text-lg text-white font-mono font-bold">{displayGen}</div>
+          </div>
+          <div className="bg-black/40 p-2 rounded border border-gray-800 text-center">
+            <div className="text-[9px] text-gray-500 uppercase font-mono">High Score</div>
+            <div className="text-lg text-yellow-400 font-mono font-bold">{displayScore.toFixed(0)}</div>
+          </div>
         </div>
       </div>
 
