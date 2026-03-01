@@ -189,6 +189,8 @@ export const FightingAgents: React.FC = () => {
   const [displayGen, setDisplayGen] = useState(1);
   const [displayScore, setDisplayScore] = useState(0);
   const [savedAgents, setSavedAgents] = useState<string[]>([]);
+  const [blueName, setBlueName] = useState<string>('Random AI');
+  const [redName, setRedName] = useState<string>('Standard Bot');
 
   // Load saved agents on mount
   useEffect(() => {
@@ -208,6 +210,52 @@ export const FightingAgents: React.FC = () => {
       sessionStorage.setItem('AGENT_' + name, JSON.stringify(state.current.bestBrain.toJSON()));
       updateSavedList();
     }
+  };
+
+  // --- FILE-BASED SAVE/LOAD ---
+  const downloadBrain = () => {
+    const name = prompt("Agent Name (wird als Dateiname gespeichert):", `Gen${state.current.generation}`);
+    if (!name) return;
+    const data = JSON.stringify(state.current.bestBrain.toJSON());
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${name}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const uploadBrain = (slot: 'NN' | 'BOT') => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      const agentName = file.name.replace('.json', '');
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const json = JSON.parse(reader.result as string);
+          const brain = SimpleNN.fromJSON(json);
+          if (slot === 'NN') {
+            state.current.nnAgent.brain = brain;
+            state.current.bestBrain = new SimpleNN(brain);
+            state.current.generation = 1;
+            state.current.currentScore = 0;
+            setBlueName(agentName);
+          } else {
+            state.current.botAgent.brain = brain;
+            setRedName(agentName);
+          }
+        } catch (err) {
+          alert('Fehler beim Laden der Datei! Ist das eine gültige Agent-Datei?');
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
   };
 
   const loadAgent = (name: string, slot: 'NN' | 'BOT') => {
@@ -239,6 +287,7 @@ export const FightingAgents: React.FC = () => {
 
   const resetBot = () => {
     state.current.botAgent.brain = undefined;
+    setRedName('Standard Bot');
   };
 
   const resetBlue = () => {
@@ -251,6 +300,7 @@ export const FightingAgents: React.FC = () => {
     state.current.botWins = 0;
     setDisplayGen(1);
     setDisplayScore(0);
+    setBlueName('Random AI');
   };
 
   // Mutable Game State
@@ -664,9 +714,10 @@ export const FightingAgents: React.FC = () => {
           <h2 className="text-2xl text-white font-bold flex items-center gap-2">
             <span className="text-cyber-accent">⚡</span> 1v1 Evolution Arena
           </h2>
-          <div className="flex gap-4 mt-2 text-xs font-mono">
-            <span className="text-cyber-accent flex items-center gap-1">AI (Cyan)</span>
-            <span className="text-[#ff0055] flex items-center gap-1">Bot (Red)</span>
+          <div className="flex gap-4 mt-2 text-xs font-mono items-center">
+            <span className="text-cyber-accent flex items-center gap-1">🔵 {blueName}</span>
+            <span className="text-gray-500">vs</span>
+            <span className="text-[#ff0055] flex items-center gap-1">🔴 {redName}</span>
           </div>
         </div>
 
@@ -729,40 +780,53 @@ export const FightingAgents: React.FC = () => {
         </div>
       </div>
 
-      {/* MANAGED AGENTS */}
+      {/* FILE-BASED AGENT SHARING */}
       <div className="mb-4 bg-black/40 p-4 rounded border border-cyber-border/20">
         <div className="flex justify-between items-center mb-3">
-          <h3 className="text-white font-mono text-sm font-bold">SAVED AGENTS</h3>
-          <button onClick={saveAgent} className="text-[10px] bg-cyber-accent/20 text-cyber-accent px-2 py-1 rounded hover:bg-cyber-accent hover:text-black transition">
-            SAVE BEST BRAIN
+          <h3 className="text-white font-mono text-sm font-bold">🧠 AGENT MANAGER</h3>
+          <button onClick={downloadBrain} className="text-[10px] bg-green-500/20 text-green-400 px-3 py-1.5 rounded hover:bg-green-500 hover:text-black transition font-bold flex items-center gap-1">
+            ⬇ DOWNLOAD BRAIN
           </button>
         </div>
-        <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
-          {savedAgents.length === 0 && <span className="text-gray-600 text-xs italic">No agents saved yet.</span>}
-          {savedAgents.map(name => (
-            <div key={name} className="flex flex-col bg-gray-900 border border-gray-700 rounded p-2 text-xs">
-              <span className="text-gray-300 font-bold mb-1 truncate max-w-[120px]">{name}</span>
-              <div className="flex gap-1">
-                <button onClick={() => loadAgent(name, 'NN')} className="px-1 py-0.5 bg-[#00f2ff]/20 text-[#00f2ff] hover:bg-[#00f2ff] hover:text-black rounded text-[9px] uppercase">
-                  Load Blue
-                </button>
-                <button onClick={() => loadAgent(name, 'BOT')} className="px-1 py-0.5 bg-[#ff0055]/20 text-[#ff0055] hover:bg-[#ff0055] hover:text-black rounded text-[9px] uppercase">
-                  Load Red
-                </button>
-              </div>
-            </div>
-          ))}
-          <div className="flex flex-col bg-gray-900 border border-gray-700 rounded p-2 text-xs border-dashed opacity-50 hover:opacity-100">
-            <span className="text-gray-400 font-bold mb-1">Standard Bot</span>
-            <button onClick={resetBot} className="px-1 py-0.5 bg-gray-700 text-white hover:bg-white hover:text-black rounded text-[9px] uppercase">
-              Reset Red
+
+        {/* Upload & Reset Row */}
+        <div className="flex flex-wrap gap-2 mb-3">
+          <button onClick={() => uploadBrain('NN')} className="flex-1 min-w-[120px] text-[10px] bg-[#00f2ff]/10 text-[#00f2ff] border border-[#00f2ff]/30 px-3 py-2 rounded hover:bg-[#00f2ff] hover:text-black transition font-bold">
+            ⬆ Upload → 🔵 Blue
+          </button>
+          <button onClick={() => uploadBrain('BOT')} className="flex-1 min-w-[120px] text-[10px] bg-[#ff0055]/10 text-[#ff0055] border border-[#ff0055]/30 px-3 py-2 rounded hover:bg-[#ff0055] hover:text-black transition font-bold">
+            ⬆ Upload → 🔴 Red
+          </button>
+          <button onClick={resetBlue} className="text-[10px] bg-gray-800 text-gray-400 border border-gray-700 px-3 py-2 rounded hover:bg-white hover:text-black transition font-bold">
+            Reset Blue
+          </button>
+          <button onClick={resetBot} className="text-[10px] bg-gray-800 text-gray-400 border border-gray-700 px-3 py-2 rounded hover:bg-white hover:text-black transition font-bold">
+            Reset Red
+          </button>
+        </div>
+
+        {/* Presets & Session Agents */}
+        <div className="border-t border-cyber-border/20 pt-3">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-[9px] text-gray-500 font-mono uppercase tracking-widest">Presets & Session</span>
+            <button onClick={saveAgent} className="text-[9px] bg-cyber-accent/10 text-cyber-accent px-2 py-0.5 rounded hover:bg-cyber-accent hover:text-black transition">
+              Save to Session
             </button>
           </div>
-          <div className="flex flex-col bg-gray-900 border border-gray-700 rounded p-2 text-xs border-dashed opacity-50 hover:opacity-100">
-            <span className="text-gray-400 font-bold mb-1">New Random</span>
-            <button onClick={resetBlue} className="px-1 py-0.5 bg-gray-700 text-white hover:bg-white hover:text-black rounded text-[9px] uppercase">
-              Reset Blue
-            </button>
+          <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto">
+            {savedAgents.map(name => (
+              <div key={name} className="flex flex-col bg-gray-900 border border-gray-700 rounded p-1.5 text-xs">
+                <span className="text-gray-300 font-bold mb-1 truncate max-w-[100px] text-[9px]">{name}</span>
+                <div className="flex gap-1">
+                  <button onClick={() => loadAgent(name, 'NN')} className="px-1 py-0.5 bg-[#00f2ff]/20 text-[#00f2ff] hover:bg-[#00f2ff] hover:text-black rounded text-[8px] uppercase">
+                    Blue
+                  </button>
+                  <button onClick={() => loadAgent(name, 'BOT')} className="px-1 py-0.5 bg-[#ff0055]/20 text-[#ff0055] hover:bg-[#ff0055] hover:text-black rounded text-[8px] uppercase">
+                    Red
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
