@@ -247,7 +247,7 @@ const Conclusion: React.FC = () => {
                         </svg>
 
                         <div className="absolute right-0 bottom-[-20px] text-[10px] text-gray-500 font-mono">Zukunft</div>
-                        <div className="absolute -left-8 top-4 text-[10px] text-gray-500 font-mono" style={{ transform: 'rotate(-90deg)', transformOrigin: 'left top' }}>Intelligenz</div>
+                        <div className="absolute -left-14 top-1/2 -translate-y-1/2 -rotate-90 text-[10px] text-gray-500 font-mono whitespace-nowrap">Intelligenz</div>
                     </div>
 
                     <p className="text-[11px] text-gray-500 leading-tight">
