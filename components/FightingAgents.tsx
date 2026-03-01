@@ -585,7 +585,7 @@ export const FightingAgents: React.FC = () => {
           s.frame = MAX_FRAMES_PER_ROUND + 1;
           updatePhysics(s, true);
         }
-        if (performance.now() - startT > 2000) break; // Safety
+        if (performance.now() - startT > 10000) break; // Safety: 10 seconds max
       }
 
       setDisplayGen(s.generation);
