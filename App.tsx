@@ -72,7 +72,7 @@ const App: React.FC = () => {
             <button
               key={item.id}
               onClick={() => setActiveModule(item.id as ModuleType)}
-              className={`flex-1 min-w-[140px] px-4 py-3 rounded-lg text-sm font-bold uppercase tracking-wide transition-all duration-300 border ${activeModule === item.id
+              className={`flex-1 min-w-fit px-6 py-3 rounded-lg text-xs md:text-sm font-bold uppercase tracking-wide whitespace-nowrap transition-all duration-300 border ${activeModule === item.id
                 ? 'bg-cyber-accent/10 border-cyber-accent text-cyber-accent shadow-[0_0_15px_rgba(0,242,255,0.3)]'
                 : 'bg-transparent border-transparent text-gray-500 hover:text-white hover:bg-white/5'
                 }`}
@@ -582,7 +582,7 @@ const App: React.FC = () => {
                     <ul className="list-disc list-inside space-y-1 text-xs text-gray-400 ml-4">
                       <li><strong>Drehung:</strong> -1 = links drehen, 0 = geradeaus, +1 = rechts drehen</li>
                       <li><strong>Bewegung:</strong> -1 = rückwärts, 0 = stehen, +1 = vorwärts</li>
-                      <li><strong>Schießen:</strong> \u003e0 = Feuer!, \u003c0 = nicht schießen</li>
+                      <li><strong>Schießen:</strong> Ausgelöst bei Wert &gt; 0 (Feuer!), kein Schuss bei Wert &lt; 0</li>
                     </ul>
                   </div>
 
